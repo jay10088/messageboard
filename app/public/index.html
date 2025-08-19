@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>留言板</title>
+  <style>
+    .box {
+      width: 800px;
+      height: 600px;
+      border: 1px solid black;
+      font-size: 20px;
+    }
+    .bar{
+        width: 450px;
+        height: 40px;
+        border: 1px solid black;
+    }
+    #textContent{
+        width: 600px;
+        height: 50px;
+        margin-top : 30px;
+        display: flex;
+        
+    }  
+    button{
+        width: 60px;
+        height: 20px;
+        margin-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>留言板</h1>
+  <div id = "board" class = "box">
+    <ul id = "list"></ul>
+  </div>
+
+  <div id = "textContent">
+    <input id = "content" class = "bar" type = "text" placeholder = "輸入留言" />
+    <button onclick = "create()">新增留言</button>
+  </div>
+
+
+ <script>
+  // 讀取清單 + 刪除按鈕
+  async function load() {
+    const res = await fetch('/message');
+    const data = await res.json();
+
+    const list = document.getElementById('list');
+    list.innerHTML = '';
+
+    data.forEach(m => {
+      const li = document.createElement('li');
+      const text = document.createElement('span');
+      text.textContent = `${m.content}`;
+
+      // 刪除按鈕
+      const btnDel = document.createElement('button');
+      btnDel.textContent = '刪除';
+      btnDel.addEventListener('click', async () => {
+        const r = await fetch('/message/' + encodeURIComponent(m.id), {
+          method: 'DELETE'
+        });
+        load();
+      });
+
+      li.appendChild(text);
+      li.appendChild(btnDel);
+      list.appendChild(li);
+    });
+  }
+  //新增資料
+  async function create() {
+    const temp = document.getElementById('content');
+    const content = temp.value.trim();
+    if (!content) return alert('留言不可以空白');
+
+    const res = await fetch('/message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content })
+    });
+
+    temp.value = '';
+    load();
+  }
+
+  load();
+</script>
+
+</body>
+</html>
