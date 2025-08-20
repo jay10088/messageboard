@@ -36,13 +36,13 @@
   </div>
 
   <div id = "textContent">
-    <input id = "content" class = "bar" type = "text" placeholder = "輸入留言" />
+    <input id = "content" class = "bar" type = "text" placeholder = "輸入留言(上限40字)" />
     <button onclick = "create()">新增留言</button>
   </div>
 
 
  <script>
-  // 讀取清單 + 刪除按鈕
+  // 讀取清單 + 刪除按鈕 + 更新按鈕
   async function load() {
     const res = await fetch('/message');
     const data = await res.json();
@@ -74,16 +74,22 @@
             headers:{'Content-Type':'application/json'},
             body: JSON.stringify({content:msg}),
         });
+        if(!r.ok) alert("更新失敗");
         load();
       })
-      
+
       // 刪除按鈕
       const btnDel = document.createElement('button');
       btnDel.textContent = '刪除';
       btnDel.addEventListener('click', async () => {
+        let res = confirm("確定要刪除嗎");
+        if(!res) return;
+
         const r = await fetch('/message/' + encodeURIComponent(m.id), {
           method: 'DELETE'
         });
+        if(!r.ok) alert("刪除失敗");
+
         load();
       });
 
@@ -99,11 +105,12 @@
     const content = temp.value.trim();
     if (!content) return alert('留言不可以空白');
 
-    const res = await fetch('/message', {
+    const r = await fetch('/message', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content })
     });
+    if(!r.ok) alert("新增失敗");
 
     temp.value = '';
     load();

@@ -17,10 +17,10 @@ class MessageController extends Controller {
   async create() {
     const { ctx } = this;
     //驗證
-    const rule = {
-      content: { type: 'string', required: true, trim: true, min: 1, max: 20 },
+    const contentRule = {
+      content: { type: 'string', required: true, trim: true, min: 1, max: 40 },
     };
-    ctx.validate(rule, ctx.request.body);
+    ctx.validate(contentRule, ctx.request.body);
 
     const { content } = ctx.request.body;
     const row = await ctx.model.Message.create({ content });
@@ -29,14 +29,20 @@ class MessageController extends Controller {
 
   async update(){
   const {ctx} = this;
-  const rule = {
-    content: { type: 'string', required: true, trim: true, min: 1, max: 20 },
+
+  const idRule = {
+    id: {type: 'int' , trim:true , min: 1},
+  }
+  ctx.validate(idRule , ctx.params);
+
+  const contentRule = {
+    content: { type: 'string', required: true, trim: true, min: 1, max: 40 },
   };
-  ctx.validate(rule, ctx.request.body);
+  ctx.validate(contentRule, ctx.request.body);
 
   const {id} = ctx.params;
   const {content} = ctx.request.body;
-  console.log({id});
+
   const [affected] = await ctx.model.Message.update(
     { content },
     { where: { id } }
@@ -45,8 +51,15 @@ class MessageController extends Controller {
 
 
   async destroy(){
-    const { id } = this.ctx.params;
-    const row = await this.ctx.model.Message.destroy({where: {id}});
+    const{ctx} = this;
+
+    const idRule = {
+      id: {type: 'int' , trim: true , min: 1},
+    }
+    ctx.validate(idRule , ctx.params);
+
+    const { id } = ctx.params;
+    const row = await ctx.model.Message.destroy({where: {id}});
   }
 }
 module.exports = MessageController;
