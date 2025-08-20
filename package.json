@@ -8,8 +8,10 @@
   },
   "dependencies": {
     "egg": "^3.17.5",
+    "egg-dotenv": "^1.0.0",
     "egg-scripts": "2",
     "egg-sequelize": "^6.0.0",
+    "egg-validate": "^2.0.2",
     "egg-view-assets": "^1.10.0",
     "mysql2": "^3.14.3",
     "sequelize": "^6.37.7"

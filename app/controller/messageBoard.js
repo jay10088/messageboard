@@ -14,9 +14,35 @@ class MessageController extends Controller {
     this.ctx.body = rows;
   }
 
-  async create(){
-    const row = await this.ctx.model.Message.create(this.ctx.request.body);
+  async create() {
+    const { ctx } = this;
+    //驗證
+    const rule = {
+      content: { type: 'string', required: true, trim: true, min: 1, max: 20 },
+    };
+    ctx.validate(rule, ctx.request.body);
+
+    const { content } = ctx.request.body;
+    const row = await ctx.model.Message.create({ content });
+
   }
+
+  async update(){
+  const {ctx} = this;
+  const rule = {
+    content: { type: 'string', required: true, trim: true, min: 1, max: 20 },
+  };
+  ctx.validate(rule, ctx.request.body);
+
+  const {id} = ctx.params;
+  const {content} = ctx.request.body;
+  console.log({id});
+  const [affected] = await ctx.model.Message.update(
+    { content },
+    { where: { id } }
+  );
+}
+
 
   async destroy(){
     const { id } = this.ctx.params;
