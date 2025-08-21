@@ -6,7 +6,9 @@ module.exports = app => {
   const Message = app.model.define('Message', {
     id: { type: INTEGER.UNSIGNED, primaryKey: true, autoIncrement: true },
     content: { type: TEXT, allowNull: false },
-  }, {
+    username: { type: TEXT, allowNull: false },
+  }, 
+  {
     tableName: 'messages',
     timestamps: false,
     freezeTableName: true
