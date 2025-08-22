@@ -7,6 +7,7 @@
     "declarations": true
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "egg": "^3.17.5",
     "egg-dotenv": "^1.0.0",
     "egg-scripts": "2",
@@ -20,7 +21,8 @@
     "egg-bin": "6",
     "egg-mock": "5",
     "eslint": "8",
-    "eslint-config-egg": "13"
+    "eslint-config-egg": "13",
+    "sequelize-cli": "^6.6.3"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -4,120 +4,180 @@
   <meta charset="UTF-8">
   <title>留言板</title>
   <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      text-align: center;
+    }
+    .title {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .login {
+      margin-top: 15px;
+      margin-left: 50px;
+    }
     .box {
-      width: 800px;
-      height: 600px;
+      width: 600px;
+      height: 500px;
       border: 1px solid black;
       font-size: 20px;
+      margin: 20px auto;
+      text-align: left;
     }
-    .bar{
-        width: 450px;
-        height: 40px;
-        border: 1px solid black;
+    .bar {
+      width: 450px;
+      height: 30px;
+      border: 1px solid black;
     }
-    #textContent{
-        width: 600px;
-        height: 50px;
-        margin-top : 30px;
-        display: flex;
-        
+    #textContent {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
     }  
-    button{
-        width: 60px;
-        height: 20px;
-        margin-left: 20px;
+    button {
+      height: 20px;
+      margin-left: 20px;
+    }
+    li {
+      margin: 5px 0;
     }
   </style>
 </head>
 <body>
-  <h1>留言板</h1>
-  <div id = "board" class = "box">
-    <ul id = "list"></ul>
+
+  <div class = "container">
+    <div class = "title">
+      <h1>留言板</h1>
+      <a href = "login.html" target = "_self" class = "login">登入</a>
+      <a href= "#" id="btnLogout" class = "login">登出</a>
+      <a href = "register.html" target = "_self" class = "login">註冊</a>
+    </div>
+
+    <div id = "board" class = "box">
+      <ul id = "list"></ul>
+    </div>
+
+    <div id = "textContent">
+      <input id = "content" class = "bar" type = "text" placeholder = "輸入留言(上限40字)" />
+      <button onclick = "create()">新增留言</button>
+    </div>
   </div>
 
-  <div id = "textContent">
-    <input id = "content" class = "bar" type = "text" placeholder = "輸入留言(上限40字)" />
-    <button onclick = "create()">新增留言</button>
-  </div>
+  <script>
+    // 讀取清單 + 刪除按鈕 + 更新按鈕
+    async function load() {
+      const res = await fetch('/message');
+      const d = await res.json();
 
+      const list = document.getElementById('list');
+      list.innerHTML = '';
 
- <script>
-  // 讀取清單 + 刪除按鈕 + 更新按鈕
-  async function load() {
-    const res = await fetch('/message');
-    const data = await res.json();
-
-    const list = document.getElementById('list');
-    list.innerHTML = '';
-
-    data.forEach(m => {
-      const li = document.createElement('li');
-      const text = document.createElement('span');
-      text.textContent = `${m.content}`;
-      
-      //更新按鈕
-      const btnUpd = document.createElement('button');
-      btnUpd.textContent = '更新';
-      btnUpd.addEventListener('click' , async () => {
-        let row = prompt("請輸入更新內容");
-        if(row === null) return;
-
-        const msg = row.trim();
-
-        if(!msg) {
-            alert("不可以空白");
-            return;
-        }
+      d.forEach(m => {
+        const li = document.createElement('li');
+        const text = document.createElement('span');
+        text.textContent = `${m.username} say: ${m.content}`;
         
-        const r = await fetch('/message/' + encodeURIComponent(m.id),{
-            method:'PUT',
-            headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({content:msg}),
+        // 更新按鈕
+        const btnUpd = document.createElement('button');
+        btnUpd.textContent = '更新';
+        btnUpd.addEventListener('click' , async () => {
+          let row = prompt("請輸入更新內容");
+          if(row === null) {
+
+            return;
+          }
+
+          const msg = row.trim();
+          if(!msg) {
+            alert("不可以空白");
+
+            return;
+          }
+          
+          const r = await fetch('/message/' + encodeURIComponent(m.id),{
+              method:'PUT',
+              headers:{'Content-Type':'application/json'},
+              body: JSON.stringify( { content:msg } ),
+          });
+
+          const data = await r.json().catch(() => ({}));
+          if(!r.ok) alert(data.msg);
+
+          load();
         });
-        if(!r.ok) alert("更新失敗");
-        load();
-      })
 
-      // 刪除按鈕
-      const btnDel = document.createElement('button');
-      btnDel.textContent = '刪除';
-      btnDel.addEventListener('click', async () => {
-        let res = confirm("確定要刪除嗎");
-        if(!res) return;
+        // 刪除按鈕
+        const btnDel = document.createElement('button');
+        btnDel.textContent = '刪除';
+        btnDel.addEventListener('click', async () => {
+          let res = confirm("確定要刪除嗎");
+          if(!res) {
 
-        const r = await fetch('/message/' + encodeURIComponent(m.id), {
-          method: 'DELETE'
+            return;
+          }
+
+          const r = await fetch('/message/' + encodeURIComponent(m.id), {
+            method: 'DELETE'
+          });
+
+          const data = await r.json().catch(() => ({}));
+          if(!r.ok) alert(data.msg);
+
+          load();
         });
-        if(!r.ok) alert("刪除失敗");
 
-        load();
+        li.appendChild(text);
+        li.appendChild(btnUpd);
+        li.appendChild(btnDel);
+        list.appendChild(li);
+      });
+    }
+
+    // 新增資料
+    async function create() {
+      const row = document.getElementById('content');
+      const content = row.value.trim();
+      if (!content){
+
+        return alert('留言不可以空白');
+      }
+
+      const r = await fetch('/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify( { content } )
       });
 
-      li.appendChild(text);
-      li.appendChild(btnUpd);
-      li.appendChild(btnDel);
-      list.appendChild(li);
-    });
-  }
-  //新增資料
-  async function create() {
-    const temp = document.getElementById('content');
-    const content = temp.value.trim();
-    if (!content) return alert('留言不可以空白');
+      const data = await r.json().catch(() => ({}));
+      if(!r.ok) alert(data.msg);
+      row.value = '';
 
-    const r = await fetch('/message', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content })
-    });
-    if(!r.ok) alert("新增失敗");
+      load();
+    }
 
-    temp.value = '';
+    async function logout(e) {
+      e.preventDefault();
+
+      const r = await fetch('/logout', {
+        method: 'POST',
+        credentials: 'same-origin'
+      });
+      const data = await r.json().catch(() => ({}));
+
+      alert(data.msg);
+    }
+    document.getElementById('btnLogout').addEventListener('click', logout);
+
     load();
-  }
-
-  load();
-</script>
+  </script>
 
 </body>
 </html>

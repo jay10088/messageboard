@@ -1,65 +1,97 @@
+const path = require('path');
 const { where } = require('sequelize');
+const rules = require(path.join( __dirname , '../validate/rules'));
 
-// app/controller/message.js
 const Controller = require('egg').Controller;
 
-class MessageController extends Controller {
+class messageController extends Controller {
   async show() {
-    const rows = await this.ctx.model.Message.findAll({
-      attributes: ['id', 'content'],
+    const { ctx } = this;
+    const rows = await ctx.model.Message.findAll({
+      attributes: ['id', 'content' , 'username'],
       order: [['id', 'DESC']],
       limit: 20,
       raw: true,
     });
-    this.ctx.body = rows;
+
+    ctx.body = rows;
   }
 
-  async create() {
-    const { ctx } = this;
-    //驗證
-    const contentRule = {
-      content: { type: 'string', required: true, trim: true, min: 1, max: 40 },
-    };
-    ctx.validate(contentRule, ctx.request.body);
+async create() {
+  const { ctx } = this;
 
-    const { content } = ctx.request.body;
-    const row = await ctx.model.Message.create({ content });
-
+  if (!ctx.session?.user) {
+    ctx.status = 401;
+    ctx.body = { msg: '未登入，請先登入' };
+    return;
   }
+
+  ctx.validate(rules.contentRule, ctx.request.body);
+
+  const content = (ctx.request.body.content).trim();
+  if (!content) {
+    ctx.status = 422;
+    ctx.body = { msg: '內容不可為空' };
+    return;
+  }
+
+  const username = ctx.session.user.username;
+
+  const created = await ctx.model.Message.create( { content, username } );
+
+  ctx.status = 201;
+  ctx.body = {
+    ok: true
+  };
+}
+
 
   async update(){
-  const {ctx} = this;
+  const { ctx } = this;
+  ctx.validate(rules.idRule, ctx.params);
+  ctx.validate(rules.contentRule, ctx.request.body);
 
-  const idRule = {
-    id: {type: 'int' , trim:true , min: 1},
-  }
-  ctx.validate(idRule , ctx.params);
+  const { id } = ctx.params;
+  const { content } = ctx.request.body;
+  const username = ctx.session.user.username;
 
-  const contentRule = {
-    content: { type: 'string', required: true, trim: true, min: 1, max: 40 },
-  };
-  ctx.validate(contentRule, ctx.request.body);
+  const msguser = await ctx.model.Message.findOne( { where: { id } } );
+  if(username !== msguser.username) {
+      ctx.status = 400;
+      ctx.body = { msg: '你不能更改別人的留言' };
 
-  const {id} = ctx.params;
-  const {content} = ctx.request.body;
+      return;
+    }
 
   const [affected] = await ctx.model.Message.update(
     { content },
     { where: { id } }
   );
+
+  ctx.status = 201;
+  ctx.body = { ok : true , msg : '更改完成'};
 }
 
 
   async destroy(){
-    const{ctx} = this;
-
-    const idRule = {
-      id: {type: 'int' , trim: true , min: 1},
-    }
-    ctx.validate(idRule , ctx.params);
-
+    const { ctx } = this;
+        
+    ctx.validate(rules.idRule, ctx.params);
     const { id } = ctx.params;
-    const row = await ctx.model.Message.destroy({where: {id}});
+    const username = ctx.session.user.username;
+    const msguser = await ctx.model.Message.findOne( { where: { id } } );
+
+    if(username !== msguser.username) {
+      ctx.status = 403;
+      ctx.body = { msg: '你不能刪除別人的留言' };
+
+      return;
+    }
+    
+    await ctx.model.Message.destroy( { where: { id } } );
+
+    ctx.status = 200;
   }
 }
-module.exports = MessageController;
+
+module.exports = messageController;
