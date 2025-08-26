@@ -2,7 +2,7 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.addColumn('messages', 'userId', {
+    await queryInterface.addColumn('messages', 'username', {
       type: Sequelize.STRING(20),
     });
   },

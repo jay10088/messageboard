@@ -60,17 +60,17 @@
             credentials: 'include'
         });
 
-        const data = await r.json().catch(() => ({}));
+        const data = await r.json();
 
         acc.value = '';
         pass.value = '';
 
-        if(r.ok){
+        if (r.ok) {
           const {username} = data.user;
             alert(`登入成功！歡迎${ username } `);
             window.location.href = 'index.html';
         }
-        else{
+        else {
           alert(data.msg);
         }
 
