@@ -74,7 +74,7 @@
   <script>
     // 讀取清單 + 刪除按鈕 + 更新按鈕
     async function load() {
-      const res = await fetch('/message');
+      const res = await fetch('/api/message');
       const d = await res.json();
 
       const list = document.getElementById('list');
@@ -90,19 +90,9 @@
         btnUpd.textContent = '更新';
         btnUpd.addEventListener('click' , async () => {
           let row = prompt("請輸入更新內容");
-          if(row === null) {
-
-            return;
-          }
-
           const msg = row.trim();
-          if(!msg) {
-            alert("不可以空白");
-
-            return;
-          }
           
-          const r = await fetch('/message/' + encodeURIComponent(m.id),{
+          const r = await fetch('/api/message/' + encodeURIComponent(m.id),{
               method:'PUT',
               headers:{'Content-Type':'application/json'},
               body: JSON.stringify( { content:msg } ),
@@ -119,17 +109,15 @@
         btnDel.textContent = '刪除';
         btnDel.addEventListener('click', async () => {
           let res = confirm("確定要刪除嗎");
-          if(!res) {
+          
+          if(res) {
+            const r = await fetch('/api/message/' + encodeURIComponent(m.id), {
+              method: 'DELETE'
+            });
 
-            return;
+            const data = await r.json().catch(() => ({}));
+            if(!r.ok) alert(data.msg);
           }
-
-          const r = await fetch('/message/' + encodeURIComponent(m.id), {
-            method: 'DELETE'
-          });
-
-          const data = await r.json().catch(() => ({}));
-          if(!r.ok) alert(data.msg);
 
           load();
         });
@@ -145,12 +133,8 @@
     async function create() {
       const row = document.getElementById('content');
       const content = row.value.trim();
-      if (!content){
 
-        return alert('留言不可以空白');
-      }
-
-      const r = await fetch('/message', {
+      const r = await fetch('/api/message/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify( { content } )
@@ -166,7 +150,7 @@
     async function logout(e) {
       e.preventDefault();
 
-      const r = await fetch('/logout', {
+      const r = await fetch('/api/logout', {
         method: 'POST',
         credentials: 'same-origin'
       });

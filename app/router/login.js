@@ -5,7 +5,7 @@
 module.exports = app => {
   const { router, controller } = app;
   //router.get('/login' , ctx => ctx.redirect('/public/login.html'));
-  router.post('/login' , controller.login.login);
-  router.post('/register', controller.login.register);
-  router.post('/logout', controller.login.logout);
+  router.post('/api/login' , controller.login.login);
+  router.post('/api/register', controller.login.register);
+  router.post('/api/logout', controller.login.logout);
 };

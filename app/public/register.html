@@ -53,13 +53,7 @@
         const username = acc.value.trim();
         const password = pass.value;
 
-        if (!username || !password) {
-            alert("帳號與密碼不可為空");
-
-            return;
-        }
-
-        const r = await fetch('/register' , {
+        const r = await fetch('/api/register' , {
             method: 'POST' ,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify( { username , password } ),
