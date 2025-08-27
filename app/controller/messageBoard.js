@@ -40,14 +40,16 @@ class MessageController extends Controller {
     if (point <= 0) {
       resultStatus = 400;
       resultBody = { msg: '點數不足，請先儲值' };
-    }
-    else {
-      //如果沒錯誤，寫入資料庫，並花費點數
-      await ctx.model.Message.create( { content, username } );
-      await ctx.model.User.decrement('point' , {
-        by: 1,
-        where: { username },
-      })
+    } else {
+      //如果沒錯誤，寫入資料庫，並花費點數（兩條都執行才寫入，否則rollback)
+      const t = await ctx.model.transaction();
+      try {
+        await ctx.model.Message.create({ content, username }, { transaction: t });
+        await ctx.model.User.decrement('point', { by: 1, where: { username }, transaction: t });
+        await t.commit();
+      } catch (err) {
+        await t.rollback();
+      }
     }
 
     ctx.status = resultStatus;
@@ -78,14 +80,13 @@ class MessageController extends Controller {
     const username = ctx.session.user.username;
     const messageUser = await ctx.model.Message.findOne( { where: { id } } );
     //權限判斷
-    if(username !== messageUser.username) {
-      resultStatus = 400;
-      resultBody = { msg: '你不能更改此留言' };
-    }
-    else{
+    if(username === messageUser.username) {
       const [affected] = await ctx.model.Message.update(
       { content },
       { where: { id } });
+    } else {
+      resultStatus = 400;
+      resultBody = { msg: '你不能更改此留言' };
     }
 
     ctx.status = resultStatus;
@@ -112,8 +113,7 @@ class MessageController extends Controller {
     //判斷權限
     if(username === messageUser.username) {
       await ctx.model.Message.destroy( { where: { id } } );
-    }
-    else{
+    } else {
       resultStatus = 403;
       resultBody = { msg: '你不能刪除此留言' };
     }
