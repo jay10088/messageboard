@@ -91,6 +91,11 @@
     </div>
 
     <script>
+      //開啟頁面時加載資料
+      document.addEventListener("DOMContentLoaded", async () => {
+        await load();
+      })
+
       // 讀取清單 + 刪除按鈕 + 更新按鈕
       async function load() {
         const res = await fetch('/api/message');
@@ -108,8 +113,8 @@
           const btnUpd = document.createElement('button');
           btnUpd.textContent = '更新';
           btnUpd.addEventListener('click' , async () => {
-
             const content = prompt("請輸入更新內容");
+
             if (content) {
               const r = await fetch('/api/message/' + encodeURIComponent(m.id),{
                 method: 'PUT',
@@ -127,8 +132,8 @@
           const btnDel = document.createElement('button');
           btnDel.textContent = '刪除';
           btnDel.addEventListener('click', async () => {
-
-            let shouldDelete = confirm("確定要刪除嗎");          
+            let shouldDelete = confirm("確定要刪除嗎");   
+                   
             if(shouldDelete) {
               const r = await fetch('/api/message/' + encodeURIComponent(m.id), {
                 method: 'DELETE'
@@ -178,15 +183,13 @@
       }
       document.getElementById('btnLogout').addEventListener('click', logout);
 
-      load();
-
       async function addPoint() {
         const r = await fetch('/api/loginInfo');
+        data = await r.json();
         if (r.ok) {
           window.location.href = "point.html";
-        }
-        else {
-          alert("請先登入");
+        } else {
+          alert(data.msg);
         }
       }
     </script>
