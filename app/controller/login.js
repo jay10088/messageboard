@@ -64,7 +64,7 @@ class LoginController extends Controller {
       const { username, password } = ctx.request.body;
       const [user, created] = await ctx.model.User.findOrCreate({
         where: { username },
-        defaults: { password: await crypto.encryptPassword(password) , value: 5},
+        defaults: { password: await crypto.encryptPassword(password) , point: 5},
       });
 
       //重複使用者
@@ -112,7 +112,7 @@ class LoginController extends Controller {
     if (userId) {
       const userData = await ctx.model.User.findOne({
         where: { id: userId },
-        attributes: ['id', 'username', 'value'],
+        attributes: ['id', 'username', 'point'],
       });
       ctx.status = 200;
       ctx.body = userData;

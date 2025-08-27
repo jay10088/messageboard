@@ -9,4 +9,3 @@ module.exports = app => {
   require('./router/login')(app);
   require('./router/point')(app);
 };
-
