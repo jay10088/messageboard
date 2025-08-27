@@ -75,11 +75,12 @@
           body: JSON.stringify( { point: point } ),
           credentials: 'include',
         });
+        
         const Pointdata = await r.json();
-        alert(Pointdata.msg);
-        await show();
-
         row.value = "";
+        alert(Pointdata.msg);
+
+        await show();
       }
       
     </script>
