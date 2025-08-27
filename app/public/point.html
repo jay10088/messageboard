@@ -1,87 +1,87 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>儲值頁面</title>
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;  
-      height: 100vh;
-      margin: 0;
-    }
-    .container {
-      width: 250px;
-      padding: 20px;
-      border: 1px solid black;
-    }
-    button {
-      width: 100%;
-      padding: 6px;
-      margin-top: 5px;
-    }
-    .back {
-      display: block;
-      margin-top: 10px;
-      text-align: center;
-    }
-    input{
-      border: 1px solid black;
-    }
-  </style>
-</head>
-<body>
-  <div class = "container">
-    <h1>儲值</h1>
-      <div>
-        <label>目前帳號：</label>
-        <span id = "username"> 載入中</span>
-        
-      </div>
-      <div>
-        <label>目前點數：</label>
-        <span id = "point"> 載入中</span>        
-      </div>
-      <div>
-        <label>要儲多少點:</label>
-        <input id="valueInput" type="number" placeholder="請輸入點數" /></input>
-      </div>
-      <button onclick="addPoint()">儲值</button>
-    <a href = "index.html" class = "back">回到首頁</a>
-  </div>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>儲值頁面</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;  
+        height: 100vh;
+        margin: 0;
+      }
+      .container {
+        width: 250px;
+        padding: 20px;
+        border: 1px solid black;
+      }
+      button {
+        width: 100%;
+        padding: 6px;
+        margin-top: 5px;
+      }
+      .back {
+        display: block;
+        margin-top: 10px;
+        text-align: center;
+      }
+      input{
+        border: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <div class = "container">
+      <h1>儲值</h1>
+        <div>
+          <label>目前帳號：</label>
+          <span id = "username"> 載入中</span>
+          
+        </div>
+        <div>
+          <label>目前點數：</label>
+          <span id = "point"> 載入中</span>        
+        </div>
+        <div>
+          <label>要儲多少點:</label>
+          <input id="pointInput" type="number" placeholder="請輸入點數" /></input>
+        </div>
+        <button onclick="addPoint()">儲值</button>
+      <a href = "index.html" class = "back">回到首頁</a>
+    </div>
 
-  <script>
+    <script>
 
-    document.addEventListener("DOMContentLoaded", async () => {
-      await show();
-    })
+      document.addEventListener("DOMContentLoaded", async () => {
+        await show();
+      })
 
-    async function show() {
-      const r = await fetch("/api/loginInfo");
-      const userData = await r.json();
-      document.getElementById("username").innerText = userData.username;
-      document.getElementById("point").innerText = userData.value;
-    }
+      async function show() {
+        const r = await fetch("/api/loginInfo");
+        const userData = await r.json();
+        document.getElementById("username").innerText = userData.username;
+        document.getElementById("point").innerText = userData.point;
+      }
 
-    async function addPoint() {
-      const row = document.getElementById('valueInput');
-      const point = parseInt(row.value, 10);
+      async function addPoint() {
+        const row = document.getElementById('pointInput');
+        const point = parseInt(row.value, 10);
 
-      const r = await fetch('/api/addValue' ,{
-        method:'POST',
-        headers:{ 'Content-Type': 'application/json' },
-        body: JSON.stringify( { point:point } ),
-        credentials: 'include',
-      });
-      const Pointdata = await r.json();
-      alert(Pointdata.msg);
-      await show();
+        const r = await fetch('/api/addPoint' ,{
+          method:'POST',
+          headers:{ 'Content-Type': 'application/json' },
+          body: JSON.stringify( { point: point } ),
+          credentials: 'include',
+        });
+        const Pointdata = await r.json();
+        alert(Pointdata.msg);
+        await show();
 
-      row.value = "";
-    }
-    
-  </script>
-</body>
+        row.value = "";
+      }
+      
+    </script>
+  </body>
 </html>

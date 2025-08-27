@@ -1,76 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>註冊頁面</title>
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;  
-      height: 100vh;
-      margin: 0;
-    }
-    .container {
-      width: 250px;
-      padding: 20px;
-      border: 1px solid black;
-    }
-    button {
-      width: 100%;
-      padding: 6px;
-      margin-top: 5px;
-    }
-    .back {
-      display: block;
-      margin-top: 10px;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class = "container">
-    <h1>註冊</h1>
-      <div>
-        <label>帳號：</label>
-        <input type = "text" id = "username" required>
-      </div>
-      <div>
-        <label>密碼：</label>
-        <input type = "password" id = "password" required>
-      </div>
-      <button onclick="register()">註冊</button>
-    <a href = "index.html" class = "back">回到首頁</a>
-  </div>
-
-  <script>
-
-    async function register() {
-      const acc = document.getElementById("username");
-      const pass = document.getElementById("password");
-      const username = acc.value;
-      const password = pass.value;
-
-      const r = await fetch('/api/register' , {
-        method: 'POST' ,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify( { username , password } ),
-        credentials: 'include'
-      });
-
-      const accountData = await r.json();
-      acc.value = '';
-      pass.value = '';
-
-      alert(accountData.msg);
-
-      //登入成功跳轉
-      if(r.ok){
-        window.location.href = 'login.html';
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>註冊頁面</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;  
+        height: 100vh;
+        margin: 0;
       }
-    }
-    
-  </script>
-</body>
+      .container {
+        width: 250px;
+        padding: 20px;
+        border: 1px solid black;
+      }
+      button {
+        width: 100%;
+        padding: 6px;
+        margin-top: 5px;
+      }
+      .back {
+        display: block;
+        margin-top: 10px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class = "container">
+      <h1>註冊</h1>
+        <div>
+          <label>帳號：</label>
+          <input type = "text" id = "username" required>
+        </div>
+        <div>
+          <label>密碼：</label>
+          <input type = "password" id = "password" required>
+        </div>
+        <button onclick="register()">註冊</button>
+      <a href = "index.html" class = "back">回到首頁</a>
+    </div>
+
+    <script>
+
+      async function register() {
+        const acc = document.getElementById("username");
+        const pass = document.getElementById("password");
+        const username = acc.value;
+        const password = pass.value;
+
+        const r = await fetch('/api/register' , {
+          method: 'POST' ,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify( { username , password } ),
+          credentials: 'include'
+        });
+
+        const accountData = await r.json();
+        acc.value = '';
+        pass.value = '';
+
+        alert(accountData.msg);
+
+        //登入成功跳轉
+        if(r.ok){
+          window.location.href = 'login.html';
+        }
+      }
+      
+    </script>
+  </body>
 </html>

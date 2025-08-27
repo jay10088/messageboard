@@ -1,77 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>登入頁面</title>
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;  
-      height: 100vh;
-      margin: 0;
-    }
-    .container {
-      width: 250px;
-      padding: 20px;
-      border: 1px solid black;
-    }
-    button {
-      width: 100%;
-      padding: 6px;
-      margin-top: 5px;
-    }
-    .back {
-      display: block;
-      margin-top: 10px;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class = "container">
-    <h1>登入</h1>
-      <div>
-        <label>帳號：</label>
-        <input type = "text" id = "username" required>
-      </div>
-      <div>
-        <label>密碼：</label>
-        <input type = "password" id = "password" required>
-      </div>
-      <button onclick = "login()">登入</button>
-    <a href = "index.html" class = "back">回到首頁</a>
-  </div>
-
-  <script>
-
-    async function login() {
-      const acc = document.getElementById("username");
-      const pass = document.getElementById("password");
-      const username = acc.value.trim();
-      const password = pass.value.trim();
-
-      const r = await fetch('/api/login' , {
-        method: 'POST' ,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify( { username , password } ),
-        credentials: 'include'
-      });
-
-      const accountData = await r.json();
-      acc.value = '';
-      pass.value = '';
-
-      if (r.ok) {
-        const {username} = data.user;
-        alert(`登入成功！歡迎${ username } `);
-        window.location.href = 'index.html';
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入頁面</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;  
+        height: 100vh;
+        margin: 0;
       }
-      else {
-        alert(accountData.msg);
+      .container {
+        width: 250px;
+        padding: 20px;
+        border: 1px solid black;
       }
-    }
-  </script>
-</body>
+      button {
+        width: 100%;
+        padding: 6px;
+        margin-top: 5px;
+      }
+      .back {
+        display: block;
+        margin-top: 10px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class = "container">
+      <h1>登入</h1>
+        <div>
+          <label>帳號：</label>
+          <input type = "text" id = "username" required>
+        </div>
+        <div>
+          <label>密碼：</label>
+          <input type = "password" id = "password" required>
+        </div>
+        <button onclick = "login()">登入</button>
+      <a href = "index.html" class = "back">回到首頁</a>
+    </div>
+
+    <script>
+
+      async function login() {
+        const acc = document.getElementById("username");
+        const pass = document.getElementById("password");
+        const username = acc.value.trim();
+        const password = pass.value.trim();
+
+        const r = await fetch('/api/login' , {
+          method: 'POST' ,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify( { username , password } ),
+          credentials: 'include'
+        });
+
+        const accountData = await r.json();
+        acc.value = '';
+        pass.value = '';
+
+        if (r.ok) {
+          const { username } = accountData.user;
+          alert(`登入成功！歡迎${ username } `);
+          window.location.href = 'index.html';
+        }
+        else {
+          alert(accountData.msg);
+        }
+      }
+    </script>
+  </body>
 </html>
