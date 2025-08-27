@@ -8,4 +8,5 @@ module.exports = app => {
   router.post('/api/login' , controller.login.login);
   router.post('/api/register', controller.login.register);
   router.post('/api/logout', controller.login.logout);
+  router.get('/api/loginInfo', controller.login.loginInfo);
 };

@@ -50,7 +50,7 @@
    async function register() {
         const acc = document.getElementById("username");
         const pass = document.getElementById("password");
-        const username = acc.value.trim();
+        const username = acc.value;
         const password = pass.value;
 
         const r = await fetch('/api/register' , {
@@ -60,12 +60,13 @@
             credentials: 'include'
         });
 
-        const data = await r.json().catch(() => ({}));
+        const data = await r.json();
 
         alert(data.msg);
         acc.value = '';
         pass.value = '';
 
+        //登入成功跳轉
         if(r.ok){
             window.location.href = 'login.html';
         }

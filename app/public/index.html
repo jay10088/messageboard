@@ -46,6 +46,14 @@
       height: 20px;
       margin-left: 20px;
     }
+    .rules {
+      width: 300px;
+      height: 500px;
+      border: 1px solid gray;
+      margin-left: 20px;
+      padding: 10px;
+      font-size: 16px;
+    }
     li {
       margin: 5px 0;
     }
@@ -70,17 +78,27 @@
       <button onclick = "create()">新增留言</button>
     </div>
   </div>
+  <div class="rules">
+      <h3>留言規則</h3>
+      <ul>
+        <li>要留言須先登入</li>
+        <li>留言上限為20字</li>
+        <li>留言需花費點數，每次需耗費1點</li>
+        <li>註冊可得5點，儲值可獲得更多點數</li>
+      </ul>
+      <button onclick="addValue()">儲值點數</button>
+    </div>
 
   <script>
     // 讀取清單 + 刪除按鈕 + 更新按鈕
     async function load() {
       const res = await fetch('/api/message');
-      const d = await res.json();
+      const sqlData = await res.json();
 
       const list = document.getElementById('list');
       list.innerHTML = '';
 
-      d.forEach(m => {
+      sqlData.forEach(m => {
         const li = document.createElement('li');
         const text = document.createElement('span');
         text.textContent = `${m.username} say: ${m.content}`;
@@ -89,17 +107,17 @@
         const btnUpd = document.createElement('button');
         btnUpd.textContent = '更新';
         btnUpd.addEventListener('click' , async () => {
-          let row = prompt("請輸入更新內容");
-          const msg = row.trim();
-          
-          const r = await fetch('/api/message/' + encodeURIComponent(m.id),{
-              method:'PUT',
-              headers:{'Content-Type':'application/json'},
-              body: JSON.stringify( { content:msg } ),
-          });
+          const content = prompt("請輸入更新內容");
+          if(content !== null){
+            const r = await fetch('/api/message/' + encodeURIComponent(m.id),{
+                method:'PUT',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify( { content:content } ),
+            });
+            const data = await r.json();
 
-          const data = await r.json().catch(() => ({}));
-          if(!r.ok) alert(data.msg);
+            alert(data.msg);
+          }
 
           load();
         });
@@ -114,9 +132,9 @@
             const r = await fetch('/api/message/' + encodeURIComponent(m.id), {
               method: 'DELETE'
             });
+            const data = await r.json();
 
-            const data = await r.json().catch(() => ({}));
-            if(!r.ok) alert(data.msg);
+            alert(data.msg);
           }
 
           load();
@@ -140,8 +158,8 @@
         body: JSON.stringify( { content } )
       });
 
-      const data = await r.json().catch(() => ({}));
-      if(!r.ok) alert(data.msg);
+      const data = await r.json();
+      alert(data.msg);
       row.value = '';
 
       load();
@@ -154,13 +172,23 @@
         method: 'POST',
         credentials: 'same-origin'
       });
-      const data = await r.json().catch(() => ({}));
+      const data = await r.json();
 
       alert(data.msg);
     }
     document.getElementById('btnLogout').addEventListener('click', logout);
 
     load();
+
+    async function addValue() {
+      const r = await fetch('/api/loginInfo');
+      if (r.ok) {
+        window.location.href = "point.html";
+      }
+      else {
+        alert("請先登入");
+      }
+    }
   </script>
 
 </body>

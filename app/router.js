@@ -7,5 +7,6 @@ module.exports = app => {
   require('./router/index')(app);
   require('./router/message')(app);
   require('./router/login')(app);
+  require('./router/point')(app);
 };
 

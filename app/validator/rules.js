@@ -16,8 +16,8 @@ const rules = {
             type: 'string' ,
             required: true , 
             trim: true , 
-            min: 1 , 
-            max: 40 
+            min: 0 , 
+            max: 20 
         }
     } ,
 
@@ -38,6 +38,13 @@ const rules = {
             max: 20,
             format: accountRegex,
         },
+    },
+
+    pointRule: {
+        point: {
+            type: 'int',
+            required: true,
+        }
     }
 
 }
