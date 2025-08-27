@@ -48,11 +48,12 @@
         <label>要儲多少點:</label>
         <input id="valueInput" type="number" placeholder="請輸入點數" /></input>
       </div>
-      <button onclick="addValue()">儲值</button>
+      <button onclick="addPoint()">儲值</button>
     <a href = "index.html" class = "back">回到首頁</a>
   </div>
 
   <script>
+
     document.addEventListener("DOMContentLoaded", async () => {
       await show();
     })
@@ -64,25 +65,22 @@
       document.getElementById("point").innerText = userData.value;
     }
 
-    async function addValue() {
+    async function addPoint() {
       const row = document.getElementById('valueInput');
       const point = parseInt(row.value, 10);
 
-      
-
       const r = await fetch('/api/addValue' ,{
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body: JSON.stringify( { point:point } ),
-                credentials: 'include',
+        method:'POST',
+        headers:{ 'Content-Type': 'application/json' },
+        body: JSON.stringify( { point:point } ),
+        credentials: 'include',
       });
-      const data = await r.json();
-      alert(data.msg);
+      const Pointdata = await r.json();
+      alert(Pointdata.msg);
       await show();
 
       row.value = "";
     }
-
     
   </script>
 </body>

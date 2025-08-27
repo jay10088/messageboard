@@ -8,7 +8,7 @@ const rules = {
             type: 'int' , 
             trim:true , 
             min: 1
-        }   
+        }
     } ,
 
     contentRule: {

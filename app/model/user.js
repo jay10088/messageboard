@@ -7,7 +7,7 @@ module.exports = app => {
     id: { type: INTEGER, primaryKey: true, autoIncrement: true },
     username: { type: STRING(20), allowNull: false, unique: true },
     password: { type: STRING(60), allowNull: false },
-    value: { type: INTEGER , allowNull: false },
+    point: { type: INTEGER , allowNull: false },
   } , {
     tableName: 'users',
     timestamps: false,

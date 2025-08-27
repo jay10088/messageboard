@@ -46,32 +46,31 @@
 
   <script>
 
+    async function register() {
+      const acc = document.getElementById("username");
+      const pass = document.getElementById("password");
+      const username = acc.value;
+      const password = pass.value;
 
-   async function register() {
-        const acc = document.getElementById("username");
-        const pass = document.getElementById("password");
-        const username = acc.value;
-        const password = pass.value;
+      const r = await fetch('/api/register' , {
+        method: 'POST' ,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify( { username , password } ),
+        credentials: 'include'
+      });
 
-        const r = await fetch('/api/register' , {
-            method: 'POST' ,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify( { username , password } ),
-            credentials: 'include'
-        });
+      const accountData = await r.json();
+      acc.value = '';
+      pass.value = '';
 
-        const data = await r.json();
+      alert(accountData.msg);
 
-        alert(data.msg);
-        acc.value = '';
-        pass.value = '';
-
-        //登入成功跳轉
-        if(r.ok){
-            window.location.href = 'login.html';
-        }
-
+      //登入成功跳轉
+      if(r.ok){
+        window.location.href = 'login.html';
+      }
     }
+    
   </script>
 </body>
 </html>
