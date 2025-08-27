@@ -4,7 +4,7 @@ const rules = require(path.join( __dirname , '../validator/rules'));
 
 const Controller = require('egg').Controller;
 
-class messageController extends Controller {
+class MessageController extends Controller {
   async show() {
     const { ctx } = this;
 
@@ -29,7 +29,6 @@ class messageController extends Controller {
       ctx.validate(rules.contentRule, ctx.request.body);
       const content = (ctx.request.body.content).trim();
       
-
       //判斷登入
       if (!ctx.session?.user) {
         resultStatus = 400;
@@ -37,22 +36,22 @@ class messageController extends Controller {
       } 
       else {
         const username = ctx.session.user.username;
-        const { value } = await ctx.model.User.findOne({
+        const { point } = await ctx.model.User.findOne({
           where: { username },
-          attributes: ['value'],
+          attributes: ['point'],
           raw: true,
         });
         // 判斷點數
-        if (value <= 0) {
+        if (point <= 0) {
           resultStatus = 400;
           resultBody = { msg: '點數不足，請先儲值' };
         }
         else {
           //如果沒錯誤，寫入資料庫，並花費點數
           await ctx.model.Message.create( { content, username } );
-          await ctx.model.User.decrement('value' , {
+          await ctx.model.User.decrement('point' , {
             by: 1,
-            where: {username},
+            where: { username },
           })
         }
       }
@@ -137,4 +136,4 @@ class messageController extends Controller {
   }
 }
 
-module.exports = messageController;
+module.exports = MessageController;

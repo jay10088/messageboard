@@ -46,34 +46,31 @@
 
   <script>
 
+    async function login() {
+      const acc = document.getElementById("username");
+      const pass = document.getElementById("password");
+      const username = acc.value.trim();
+      const password = pass.value.trim();
 
-   async function login() {
-        const acc = document.getElementById("username");
-        const pass = document.getElementById("password");
-        const username = acc.value.trim();
-        const password = pass.value.trim();
+      const r = await fetch('/api/login' , {
+        method: 'POST' ,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify( { username , password } ),
+        credentials: 'include'
+      });
 
-        const r = await fetch('/api/login' , {
-            method: 'POST' ,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify( { username , password } ),
-            credentials: 'include'
-        });
+      const accountData = await r.json();
+      acc.value = '';
+      pass.value = '';
 
-        const data = await r.json();
-
-        acc.value = '';
-        pass.value = '';
-
-        if (r.ok) {
-          const {username} = data.user;
-            alert(`登入成功！歡迎${ username } `);
-            window.location.href = 'index.html';
-        }
-        else {
-          alert(data.msg);
-        }
-
+      if (r.ok) {
+        const {username} = data.user;
+        alert(`登入成功！歡迎${ username } `);
+        window.location.href = 'index.html';
+      }
+      else {
+        alert(accountData.msg);
+      }
     }
   </script>
 </body>

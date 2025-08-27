@@ -78,16 +78,17 @@
       <button onclick = "create()">新增留言</button>
     </div>
   </div>
+
   <div class="rules">
-      <h3>留言規則</h3>
-      <ul>
-        <li>要留言須先登入</li>
-        <li>留言上限為20字</li>
-        <li>留言需花費點數，每次需耗費1點</li>
-        <li>註冊可得5點，儲值可獲得更多點數</li>
-      </ul>
-      <button onclick="addValue()">儲值點數</button>
-    </div>
+    <h3>留言規則</h3>
+    <ul>
+      <li>要留言須先登入</li>
+      <li>留言上限為20字</li>
+      <li>留言需花費點數，每次需耗費1點</li>
+      <li>註冊可得5點，儲值可獲得更多點數</li>
+    </ul>
+    <button onclick="addPoint()">儲值點數</button>
+  </div>
 
   <script>
     // 讀取清單 + 刪除按鈕 + 更新按鈕
@@ -107,15 +108,15 @@
         const btnUpd = document.createElement('button');
         btnUpd.textContent = '更新';
         btnUpd.addEventListener('click' , async () => {
+
           const content = prompt("請輸入更新內容");
-          if(content !== null){
+          if (content) {
             const r = await fetch('/api/message/' + encodeURIComponent(m.id),{
-                method:'PUT',
-                headers:{'Content-Type':'application/json'},
-                body: JSON.stringify( { content:content } ),
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify( { content:content } ),
             });
             const data = await r.json();
-
             alert(data.msg);
           }
 
@@ -126,14 +127,13 @@
         const btnDel = document.createElement('button');
         btnDel.textContent = '刪除';
         btnDel.addEventListener('click', async () => {
-          let res = confirm("確定要刪除嗎");
-          
-          if(res) {
+
+          let shouldDelete = confirm("確定要刪除嗎");          
+          if(shouldDelete) {
             const r = await fetch('/api/message/' + encodeURIComponent(m.id), {
               method: 'DELETE'
             });
             const data = await r.json();
-
             alert(data.msg);
           }
 
@@ -158,8 +158,8 @@
         body: JSON.stringify( { content } )
       });
 
-      const data = await r.json();
-      alert(data.msg);
+      const contentData = await r.json();
+      alert(contentData.msg);
       row.value = '';
 
       load();
@@ -180,7 +180,7 @@
 
     load();
 
-    async function addValue() {
+    async function addPoint() {
       const r = await fetch('/api/loginInfo');
       if (r.ok) {
         window.location.href = "point.html";
