@@ -1,44 +1,31 @@
 'use strict'
-const path = require('path');
-const rules = require(path.join( __dirname , '../validator/rules'));
 
 const Controller = require('egg').Controller;
 
-class valueController extends Controller {
-    async addValue() {
-        try{
-            const { ctx } = this;
-            const returnStatus = 200;
-            const returnBody = { msg: '儲值成功' };
-            ctx.validate(rules.pointRule, ctx.request.body);
+class PointController extends Controller {
+  async addPoint() {
+    const { ctx } = this;
+    const returnStatus = 200;
+    const returnBody = { msg: '儲值成功' };
 
-            const { point } = ctx.request.body;
-            
-            if (!ctx.session.user) {
-                returnStatus = 400;
-                returnBody = { msg: '未登入' };
-            }
-            else {
-                const userId = ctx.session.user.id;
-                await ctx.model.User.increment('value', {
-                    by: point,
-                    where: { id: userId },
-                });
-            }
+    //驗證
+    const pointRule = {
+      id: { type: 'int', min: 1, required: true, convertType: 'int' }
+    };
+    ctx.validate(rules.pointRule, ctx.request.body);
 
-            ctx.status = returnStatus;
-            ctx.body = returnBody;
-        }
-        catch (err) {
-            if (err.name === 'UnprocessableEntityError') {
-                ctx.status = 422;
+    const { point } = ctx.request.body;
+    const userId = ctx.session.user.id;
+    
+    await ctx.model.User.increment('point', {
+      by: point,
+      where: { id: userId },
+    });
 
-                ctx.body = { msg: '只可以輸入數字' };
-            }
-        }
-        
-    }
+    ctx.status = returnStatus;
 
+    ctx.body = returnBody;
+  }
 }
 
-module.exports = valueController;
+module.exports = PointController;
