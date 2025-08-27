@@ -66,14 +66,14 @@ class LoginController extends Controller {
     });
 
     //重複使用者
-    if (!created) {
+    if (created === false) {
       resultStatus = 409;
       resultBody = { msg: '使用者已存在' };
     }
 
-      ctx.status = resultStatus;
+    ctx.status = resultStatus;
 
-      ctx.body = resultBody;
+    ctx.body = resultBody;
   }
 
   //登出
