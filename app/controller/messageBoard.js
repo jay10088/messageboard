@@ -61,7 +61,7 @@ class MessageController extends Controller {
   }
 
   //更改留言
-  async update(){
+  async update() {
     const { ctx } = this;
     let resultStatus = 200;
     let resultBody = { msg: '更新成功' };
