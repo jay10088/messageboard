@@ -83,7 +83,7 @@ class MessageController extends Controller {
     const username = ctx.session.user.username;
     const messageUser = await ctx.model.Message.findOne( { where: { id } } );
     //權限判斷
-    if(username === messageUser.username) {
+    if (username === messageUser.username) {
       await ctx.model.Message.update( { content } , { where: { id } } );
     } else {
       resultStatus = 400;
@@ -112,7 +112,7 @@ class MessageController extends Controller {
     const messageUser = await ctx.model.Message.findOne( { where: { id } } );
 
     //判斷權限
-    if(username === messageUser.username) {
+    if (username === messageUser.username) {
       await ctx.model.Message.destroy( { where: { id } } );
     } else {
       resultStatus = 403;
