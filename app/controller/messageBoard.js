@@ -24,7 +24,7 @@ class MessageController extends Controller {
 
     //驗證
     const rules = {
-      content: { type: 'string', trim: true, min: 1, max: 20, required: true}
+      content: { type: 'string', trim: true, min: 1, max: 20, required: true }
     }
     ctx.validate(rules, ctx.request.body);
 
@@ -44,8 +44,8 @@ class MessageController extends Controller {
       //如果沒錯誤，寫入資料庫，並花費點數（全部正確執行才寫入，否則rollback)
       const t = await ctx.model.transaction();
       try {
-        await ctx.model.Message.create({ content, username }, { transaction: t });
-        await ctx.model.User.decrement('point', { by: 1, where: { username }, transaction: t });
+        await ctx.model.Message.create( { content, username }, { transaction: t } );
+        await ctx.model.User.decrement('point', { by: 1, where: { username }, transaction: t } );
         await ctx.model.Point.create( { delta: -1, username: username }, { transaction: t } );
         await t.commit();
       } catch (err) {
@@ -64,7 +64,7 @@ class MessageController extends Controller {
   async update(){
     const { ctx } = this;
     let resultStatus = 200;
-    let resultBody = { msg: '更新成功'};
+    let resultBody = { msg: '更新成功' };
 
     //驗證api id
     const paramsRule = {
@@ -96,7 +96,7 @@ class MessageController extends Controller {
   }
 
   //刪除留言
-  async destroy(){
+  async destroy() {
     const { ctx } = this;
     let resultStatus = 200;
     let resultBody = { msg: '刪除成功' };

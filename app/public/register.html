@@ -40,7 +40,7 @@
           <label>密碼：</label>
           <input type = "password" id = "password" required>
         </div>
-        <button onclick="register()">註冊</button>
+        <button onclick = "register()">註冊</button>
       <a href = "index.html" class = "back">回到首頁</a>
     </div>
 
@@ -66,7 +66,7 @@
         alert(accountData.msg);
 
         //登入成功跳轉
-        if(r.ok){
+        if (r.ok) {
           window.location.href = 'login.html';
         }
       }
