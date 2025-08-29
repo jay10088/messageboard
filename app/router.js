@@ -27,3 +27,4 @@ module.exports = app => {
   // 計算點數
   router.post('/api/addPoint', auth , controller.point.addPoint);
 };
+
