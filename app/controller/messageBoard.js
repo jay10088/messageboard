@@ -5,7 +5,7 @@ const Controller = require('egg').Controller;
 class MessageController extends Controller {
   async show() {
     const { ctx } = this;
-
+  
     const rows = await ctx.model.Message.findAll({
       attributes: ['id', 'content' , 'username'],
       order: [['id', 'DESC']],
@@ -41,14 +41,17 @@ class MessageController extends Controller {
       resultStatus = 400;
       resultBody = { msg: '點數不足，請先儲值' };
     } else {
-      //如果沒錯誤，寫入資料庫，並花費點數（兩條都執行才寫入，否則rollback)
+      //如果沒錯誤，寫入資料庫，並花費點數（全部正確執行才寫入，否則rollback)
       const t = await ctx.model.transaction();
       try {
         await ctx.model.Message.create({ content, username }, { transaction: t });
         await ctx.model.User.decrement('point', { by: 1, where: { username }, transaction: t });
+        await ctx.model.Point.create( { delta: -1, username: username }, { transaction: t } );
         await t.commit();
       } catch (err) {
         await t.rollback();
+        resultStatus = 400;
+        resultBody = { msg: '寫入資料庫失敗' };
       }
     }
 
@@ -81,9 +84,7 @@ class MessageController extends Controller {
     const messageUser = await ctx.model.Message.findOne( { where: { id } } );
     //權限判斷
     if(username === messageUser.username) {
-      const [affected] = await ctx.model.Message.update(
-      { content },
-      { where: { id } });
+      await ctx.model.Message.update( { content } , { where: { id } } );
     } else {
       resultStatus = 400;
       resultBody = { msg: '你不能更改此留言' };

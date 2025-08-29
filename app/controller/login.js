@@ -26,7 +26,7 @@ class LoginController extends Controller {
       attributes: ['id', 'username', 'password']
     });
 
-    //無使用者
+    //  判斷是否存在使用者/密碼
     if (user) {
       const isMatch = await crypto.verifyPassword(password, user.password);
       if (isMatch) {
