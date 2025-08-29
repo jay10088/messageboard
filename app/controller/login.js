@@ -47,10 +47,10 @@ class LoginController extends Controller {
   }
 
   //註冊
-  async register(){
+  async register() {
     const { ctx } = this;
     let resultStatus = 200;
-    let resultBody = { msg: '註冊成功，跳轉至登入頁面'};
+    let resultBody = { msg: '註冊成功，跳轉至登入頁面' };
 
     //驗證帳密
     const rules = {
@@ -62,7 +62,7 @@ class LoginController extends Controller {
     const { username, password } = ctx.request.body;
     const [user, created] = await ctx.model.User.findOrCreate({
       where: { username },
-      defaults: { password: await crypto.encryptPassword(password) , point: 5},
+      defaults: { password: await crypto.encryptPassword(password), point: 5 },
     });
 
     //重複使用者

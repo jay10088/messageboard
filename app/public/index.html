@@ -66,7 +66,7 @@
       <div class = "title">
         <h1>留言板</h1>
         <a href = "login.html" target = "_self" class = "login">登入</a>
-        <a href= "#" id="btnLogout" class = "login">登出</a>
+        <a href = "#" id = "btnLogout" class = "login">登出</a>
         <a href = "register.html" target = "_self" class = "login">註冊</a>
       </div>
 
@@ -108,7 +108,7 @@
         sqlData.forEach(m => {
           const li = document.createElement('li');
           const text = document.createElement('span');
-          text.textContent = `${m.username} say: ${m.content}`;
+          text.textContent = `${ m.username } say: ${ m.content }`;
           
           // 更新按鈕
           const btnUpd = document.createElement('button');
@@ -117,7 +117,7 @@
             const content = prompt("請輸入更新內容");
 
             if (content) {
-              const r = await fetch('/api/message/' + encodeURIComponent(m.id),{
+              const r = await fetch('/api/message/' + encodeURIComponent(m.id), {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify( { content:content } ),
@@ -135,7 +135,7 @@
           btnDel.addEventListener('click', async () => {
             let shouldDelete = confirm("確定要刪除嗎");   
                    
-            if(shouldDelete) {
+            if (shouldDelete) {
               const r = await fetch('/api/message/' + encodeURIComponent(m.id), {
                 method: 'DELETE'
               });
