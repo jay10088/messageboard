@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>管理介面</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .box {
+        width: 500px;
+        height: 650px;
+        border: 1px solid black;
+        font-size: 20px;
+        margin: 40px 0 20px 100px;
+        text-align: left;
+        padding: 10px;
+      }
+
+      input {
+        margin-top: 10px;
+        width: 150px;
+        height: 25px;
+        font-size: 16px;
+      }
+      button {
+        height: 30px;
+        font-size: 16px;
+        margin-left: 10px;
+        cursor: pointer;
+      }
+      li {
+        margin: 5px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class = "box">
+      <p>儲值/使用紀錄</p>
+      <ul id = "list"></ul>
+    </div>
+    <div class = "box">
+      <p>查詢使用者：</p>
+      <input type = "text" placeholder = "輸入用戶名" id = "userInput"/>
+      <button onclick = "searchUser()">查詢</button>
+      <button onclick = "modifyPoint()">點數更動</button>
+      <button onclick = "reloadPage()">重置頁面</button>
+      <button onclick="window.location.href='index.html'">首頁</button>
+      <p id = "pointText"></p>
+    </div>
+
+    <script>
+
+      //開啟頁面時加載資料
+      document.addEventListener("DOMContentLoaded", async () => {
+        const r = await fetch('/api/loginInfo');
+        const userData = await r.json();
+        if (userData.role === 'user' || userData.role === '') {
+          alert('你沒有權限進入');
+          window.location.href = 'index.html';
+        }
+        await load();
+      })
+
+      // 讀取清單
+      async function load() {
+        const res = await fetch('/api/showAllPointHistory');
+        const sqlData = await res.json();
+
+        const list = document.getElementById('list');
+        list.innerHTML = '';
+
+        sqlData.forEach(m => {
+          const li = document.createElement('li');
+          const text = document.createElement('span');
+          text.textContent = `${ m.createdAt } 用戶${ m.username }更動${ m.delta }點`;
+          li.appendChild(text);
+          list.appendChild(li);
+        });
+      }
+
+      async function searchUser() {
+        const userList = document.getElementById('userList');
+        const userInput = document.getElementById('userInput');
+        const pointText = document.getElementById('pointText');        
+        const username = userInput.value.trim(); 
+
+        const res = await fetch(`/api/showUserPointHistory/${ encodeURIComponent(username) }`);
+        const userData = await res.json();
+
+        const r = await fetch(`/api/pointInfo/${ encodeURIComponent(username) }`);
+        const pointData = await r.json();
+
+        const pointContent = `使用者${ pointData.username }，目前持有：${ pointData.point }點`;
+        pointText.textContent = pointContent;
+
+        list.innerHTML = '';
+        userData.forEach(m => {
+          const li = document.createElement('li');
+          const text = document.createElement('span');
+          text.textContent = `${ m.createdAt } 使用者${ m.username }更動${ m.delta }點`;
+          li.appendChild(text);
+          list.appendChild(li);
+        });
+      }
+
+      async function modifyPoint() {
+        const userInput = document.getElementById('userInput');
+        const username = userInput.value.trim();
+
+        const r = await fetch(`/api/pointInfo/${ encodeURIComponent(username) }`);
+        const pointData = await r.json();
+
+        const tips = `${ pointData.username } 目前有 ${ pointData.point } 點，請輸入要增加或減少的點數（減少用-）`;
+        const inputPoint = prompt(tips);
+
+        if (inputPoint) {
+          const res = await fetch('/api/managePoint/' + encodeURIComponent(username) , {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify( { point: inputPoint } ),
+          });
+
+          alert('修改成功，請重新查詢');
+        }
+      }
+
+
+      async function reloadPage() {
+        const pointText = document.getElementById('pointText');
+        const userInput = document.getElementById('userInput');
+
+        pointText.textContent = '';
+        userInput.value = '';
+        await load();
+      }
+      
+    </script>
+  </body>
+</html>
