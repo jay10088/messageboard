@@ -24,7 +24,7 @@ class LoginController extends Controller {
 
     const user = await ctx.model.User.findOne({
       where: { username },
-      attributes: ['id', 'username', 'password','role']
+      attributes: ['id', 'username', 'password', 'role']
     });
 
     //  判斷是否存在使用者/密碼
