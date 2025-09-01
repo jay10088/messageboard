@@ -13,7 +13,6 @@ module.exports = appInfo => {
     port: process.env.PORT || 7001,
     hostname: '0.0.0.0',
   },
-  workers: 2,
 };
 
   config.security = {
