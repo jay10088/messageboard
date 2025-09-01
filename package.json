@@ -28,7 +28,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "start": "egg-scripts start --title=egg-server-message",
+    "start": "egg-scripts start --workers=2 --daemon=false --title=egg-server-message",
     "stop": "egg-scripts stop --title=egg-server-message",
     "dev": "egg-bin dev",
     "test": "npm run lint -- --fix && npm run test:local",
