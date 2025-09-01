@@ -89,12 +89,19 @@ class LoginController extends Controller {
   //目前session登入資訊
   async loginInfo() {
     const { ctx } = this;
-    const userId = ctx.session.user.id;
-    const userData = await ctx.model.User.findOne({
-      where: { id: userId },
-      attributes: ['id', 'username', 'point', 'role'],
-    });
-    ctx.status = 200;
+    let userData = '';
+
+    if (ctx.session.user) {
+      const userId = ctx.session.user.id;
+      userData = await ctx.model.User.findOne({
+        where: { id: userId },
+        attributes: ['id', 'username', 'point', 'role'],
+      });
+      ctx.status = 200;
+    } else {
+      userData = { id: null, username: '', point: 0, role: '' };
+      ctx.status = 400;
+    }
     
     ctx.body = userData;
   }
