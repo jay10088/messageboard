@@ -9,17 +9,20 @@ module.exports = (requiredRoles = []) => {
   return async function auth(ctx, next) {
     let returnStatus = 400;
     let returnBody = { msg: '未登入' };
+    let shouldSetResponse = true;
+
     // 檢查是否已登入
     if (ctx.session.user) {
       const user = ctx.session.user;
       const userRole = user.role;
+
       // 檢查使用者權限
       const userLevel = roleHierarchy[userRole];
       const hasPermission = requiredRoles.some(role => userLevel >= roleHierarchy[role]);
+      
       //有權限才放行
       if (hasPermission) {
-        returnStatus = 200;
-        returnBody = { msg: '' };
+        shouldSetResponse = false; // 有權限時不回傳
         await next();
       } else {
         returnStatus = 400;
@@ -27,8 +30,10 @@ module.exports = (requiredRoles = []) => {
       }
     }
 
-    ctx.status = returnStatus;
-
-    ctx.body = returnBody;
+    // 只有沒權限or未登入才回傳
+    if (shouldSetResponse) {
+      ctx.status = returnStatus;
+      ctx.body = returnBody;
+    }
   };
 };
