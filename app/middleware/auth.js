@@ -26,7 +26,6 @@ module.exports = (requiredRoles = []) => {
         await next();
       } else {
         returnStatus = 400;
-        
         returnBody = { msg: '權限不足' };
       }
     }
@@ -34,6 +33,7 @@ module.exports = (requiredRoles = []) => {
     // 只有沒權限or未登入才回傳
     if (shouldResponse) {
       ctx.status = returnStatus;
+      
       ctx.body = returnBody;
     }
   };
