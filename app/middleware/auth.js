@@ -26,6 +26,7 @@ module.exports = (requiredRoles = []) => {
         await next();
       } else {
         returnStatus = 400;
+        
         returnBody = { msg: '權限不足' };
       }
     }
