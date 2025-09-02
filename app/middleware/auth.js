@@ -22,7 +22,7 @@ module.exports = (requiredRoles = []) => {
       
       //有權限才放行
       if (hasPermission) {
-        shouldSetResponse = false; // 有權限時不回傳
+        shouldResponse = false; // 有權限時不回傳
         await next();
       } else {
         returnStatus = 400;
