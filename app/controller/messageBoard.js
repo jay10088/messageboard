@@ -3,6 +3,8 @@
 const Controller = require('egg').Controller;
 
 class MessageController extends Controller {
+
+  //顯示留言
   async show() {
     const { ctx } = this;
   

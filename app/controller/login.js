@@ -5,7 +5,9 @@ const crypto = require(path.join(__dirname , '../lib/crypto'));
 const Controller = require('egg').Controller;
 
 class LoginController extends Controller {
-    
+
+
+  //登入
   async login(){
     const { ctx } = this;
     let resultStatus = 200;
