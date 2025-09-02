@@ -9,7 +9,7 @@ module.exports = (requiredRoles = []) => {
   return async function auth(ctx, next) {
     let returnStatus = 400;
     let returnBody = { msg: '未登入' };
-    let shouldSetResponse = true;
+    let shouldResponse = true;
 
     // 檢查是否已登入
     if (ctx.session.user) {
@@ -31,7 +31,7 @@ module.exports = (requiredRoles = []) => {
     }
 
     // 只有沒權限or未登入才回傳
-    if (shouldSetResponse) {
+    if (shouldResponse) {
       ctx.status = returnStatus;
       ctx.body = returnBody;
     }
