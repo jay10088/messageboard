@@ -5,7 +5,8 @@ const crypto = require(path.join(__dirname , '../lib/crypto'));
 const Controller = require('egg').Controller;
 
 class LoginController extends Controller {
-    
+
+
   //登入
   async login(){
     const { ctx } = this;
@@ -24,14 +25,14 @@ class LoginController extends Controller {
 
     const user = await ctx.model.User.findOne({
       where: { username },
-      attributes: ['id', 'username', 'password', 'role']
+      attributes: ['id', 'username', 'password']
     });
 
     //  判斷是否存在使用者/密碼
     if (user) {
       const isMatch = await crypto.verifyPassword(password, user.password);
       if (isMatch) {
-        ctx.session.user = { id: user.id, username: user.username, role: user.role };
+        ctx.session.user = { id: user.id, username: user.username };
         resultStatus = 200;
         resultBody = { msg: '登入成功', user: ctx.session.user };
       } else {                    
@@ -47,7 +48,7 @@ class LoginController extends Controller {
     ctx.body = resultBody;
   }
 
-  //註冊帳號
+  //註冊
   async register() {
     const { ctx } = this;
     let resultStatus = 200;
@@ -86,22 +87,15 @@ class LoginController extends Controller {
     ctx.body = { msg: '已登出' };
   }
 
-  //目前session登入資訊
+  //目前登入資訊
   async loginInfo() {
     const { ctx } = this;
-    let userData = '';
-
-    if (ctx.session.user) {
-      const userId = ctx.session.user.id;
-      userData = await ctx.model.User.findOne({
-        where: { id: userId },
-        attributes: ['id', 'username', 'point', 'role'],
-      });
-      ctx.status = 200;
-    } else {
-      userData = { id: null, username: '', point: 0, role: '' };
-      ctx.status = 400;
-    }
+    const userId = ctx.session.user.id;
+    const userData = await ctx.model.User.findOne({
+      where: { id: userId },
+      attributes: ['id', 'username', 'point'],
+    });
+    ctx.status = 200;
     
     ctx.body = userData;
   }
