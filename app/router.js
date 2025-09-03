@@ -1,14 +1,11 @@
 
-/**
- * @param {Egg.Application} app - egg application
- */
-// app/router.js
+
 module.exports = app => {
   const { router, controller, middleware } = app;
 
   //登入驗證middleware
-  const userAuth = middleware.auth(['user']);
-  const staffAuth = middleware.auth(['staff']);
+  const loginAuth = middleware.loginAuth();
+  const staffAuth = middleware.roleAuth(['staff']);
 
   //首頁
   router.redirect('/', '/public/index.html', 302);
@@ -16,19 +13,19 @@ module.exports = app => {
   // login相關
   router.post('/api/login', controller.login.login);
   router.post('/api/register', controller.login.register);
-  router.post('/api/logout', userAuth , controller.login.logout);
+  router.post('/api/logout', loginAuth, controller.login.logout);
   router.get('/api/loginInfo', controller.login.loginInfo);
 
   // 留言板
   router.get('/api/message', controller.messageBoard.show);
-  router.post('/api/message' , userAuth ,  controller.messageBoard.create);
-  router.put('/api/message/:id', userAuth , controller.messageBoard.update);
-  router.delete('/api/message/:id', userAuth , controller.messageBoard.destroy);
+  router.post('/api/message', loginAuth,  controller.messageBoard.create);
+  router.put('/api/message/:id', loginAuth, controller.messageBoard.update);
+  router.delete('/api/message/:id', loginAuth, controller.messageBoard.destroy);
 
   // 計算點數
-  router.post('/api/addPoint', userAuth , controller.point.addPoint);
-  router.post('/api/managePoint/:username', staffAuth , controller.point.managePoint);
-  router.get('/api/showAllPointHistory', staffAuth, controller.point.showAllPointHistory);
-  router.get('/api/showUserPointHistory/:username', staffAuth, controller.point.showUserPointHistory);
-  router.get('/api/pointInfo/:username', userAuth, controller.point.pointInfo);
+  router.post('/api/addPoint', loginAuth, controller.point.addPoint);
+  router.post('/api/managePoint/:username', loginAuth, staffAuth, controller.point.managePoint);
+  router.get('/api/showAllPointHistory', loginAuth, staffAuth, controller.point.showAllPointHistory);
+  router.get('/api/showUserPointHistory/:username', loginAuth, staffAuth, controller.point.showUserPointHistory);
+  router.get('/api/pointInfo/:username', loginAuth, controller.point.pointInfo);
 };

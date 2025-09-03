@@ -5,7 +5,7 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 module.exports = appInfo => {
   const config = {};
 
-  config.keys = appInfo.name + '_' + process.env.COOKIE_SECRET;
+  config.keys = appInfo.name + '_' + process.env.SECRET_KEY;
   config.proxy = true;
 
   config.cluster = {
