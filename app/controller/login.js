@@ -25,14 +25,14 @@ class LoginController extends Controller {
 
     const user = await ctx.model.User.findOne({
       where: { username },
-      attributes: ['id', 'username', 'password']
+      attributes: ['id', 'username', 'password', 'role']
     });
 
     //  判斷是否存在使用者/密碼
     if (user) {
       const isMatch = await crypto.verifyPassword(password, user.password);
       if (isMatch) {
-        ctx.session.user = { id: user.id, username: user.username };
+        ctx.session.user = { id: user.id, username: user.username, role:user.role};
         resultStatus = 200;
         resultBody = { msg: '登入成功', user: ctx.session.user };
       } else {                    
@@ -90,13 +90,20 @@ class LoginController extends Controller {
   //目前登入資訊
   async loginInfo() {
     const { ctx } = this;
-    const userId = ctx.session.user.id;
-    const userData = await ctx.model.User.findOne({
-      where: { id: userId },
-      attributes: ['id', 'username', 'point'],
-    });
-    ctx.status = 200;
-    
+    let userData = '';
+
+    if (ctx.session.user) {
+      const userId = ctx.session.user.id;
+      userData = await ctx.model.User.findOne({
+        where: { id: userId },
+        attributes: ['id', 'username', 'point', 'role'],
+      });
+      ctx.status = 200;
+    } else {
+      userData = { id: null, username: '', point: 0, role: '' };
+      ctx.status = 400;
+    }
+
     ctx.body = userData;
   }
 }
