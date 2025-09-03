@@ -108,13 +108,13 @@ class MessageController extends Controller {
       id: { type: 'int', min: 1, required: true, convertType: 'int' }
     };
     ctx.validate(paramsRule, ctx.params);
-
+    const role = ctx.session.user.role;
     const { id } = ctx.params;
     const username = ctx.session.user.username;
     const messageUser = await ctx.model.Message.findOne( { where: { id } } );
 
     //判斷權限
-    if (username === messageUser.username) {
+    if (username === messageUser.username  || role === 'staff') {
       await ctx.model.Message.destroy( { where: { id } } );
     } else {
       resultStatus = 403;
