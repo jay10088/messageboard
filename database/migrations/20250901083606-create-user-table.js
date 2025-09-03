@@ -2,7 +2,7 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('users', {
+    await queryInterface.createTable('user', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -18,10 +18,19 @@ module.exports = {
         type: Sequelize.STRING(60),
         allowNull: false,
       },
+      point: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      role: {
+        type: Sequelize.ENUM('admin', 'staff', 'user'),
+        allowNull: false,
+        defaultValue: 'user'
+      }
     });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('users');
+    await queryInterface.dropTable('user');
   }
 };
