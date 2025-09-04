@@ -3,13 +3,13 @@
 module.exports = app => {
   const { INTEGER, TEXT } = app.Sequelize;
 
-  const Message = app.model.define('Message', {
+  const Message = app.model.define('message', {
     id: { type: INTEGER.UNSIGNED, primaryKey: true, autoIncrement: true },
     content: { type: TEXT, allowNull: false },
     username: { type: TEXT, allowNull: false },
   }, 
   {
-    tableName: 'messages',
+    tableName: 'message',
     timestamps: false,
     freezeTableName: true
   });

@@ -10,8 +10,9 @@ module.exports = app => {
     point: { type: INTEGER , allowNull: false },
     role: { type: ENUM('admin', 'staff', 'user'), allowNull: false, defaultValue: 'user'},
   } , {
-    tableName: 'users',
+    tableName: 'user',
     timestamps: false,
+    freezeTableName: true
   });
 
   return User;

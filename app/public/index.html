@@ -58,6 +58,9 @@
       li {
         margin: 5px 0;
       }
+      #manageBoard {
+        visibility: hidden;
+      }
     </style>
   </head>
   <body>
@@ -89,12 +92,20 @@
         <li>註冊可得5點，儲值可獲得更多點數</li>
       </ul>
       <button onclick="addPoint()">儲值點數</button>
+      <button onclick = "window.location.href = 'manage.html'" id = "manageBoard">管理面板</button>
     </div>
 
     <script>
       //開啟頁面時加載資料
       document.addEventListener("DOMContentLoaded", async () => {
         await load();
+        const r = await fetch('/api/loginInfo');
+        const userData = await r.json();
+        //控制user看不到前端的管理介面
+        if (userData.role === 'staff' || userData.role === 'admin') {
+          const manageBoard = document.getElementById('manageBoard');
+          manageBoard.style.visibility = 'visible';
+        }
       })
 
       // 讀取清單 + 刪除按鈕 + 更新按鈕
@@ -179,8 +190,9 @@
           credentials: 'same-origin'
         });
         const data = await r.json();
-
         alert(data.msg);
+
+        window.location.reload();
       }
       document.getElementById('btnLogout').addEventListener('click', logout);
 
