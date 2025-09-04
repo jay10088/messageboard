@@ -48,7 +48,7 @@ class LoginController extends Controller {
     ctx.body = resultBody;
   }
 
-  //註冊
+  //註冊帳號
   async register() {
     const { ctx } = this;
     let resultStatus = 200;
@@ -87,7 +87,7 @@ class LoginController extends Controller {
     ctx.body = { msg: '已登出' };
   }
 
-  //目前登入資訊
+  //目前session登入資訊
   async loginInfo() {
     const { ctx } = this;
     const userId = ctx.session.user.id;
