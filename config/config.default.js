@@ -8,6 +8,13 @@ module.exports = appInfo => {
   config.keys = appInfo.name + '_' + process.env.SECRET_KEY;
   config.proxy = true;
 
+  config.cluster = {
+    listen: {
+      port: process.env.PORT,
+      hostname: '0.0.0.0',
+    },
+  };
+
   config.security = {
     csrf: { enable: false },
   };
