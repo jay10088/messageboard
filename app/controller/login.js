@@ -5,8 +5,7 @@ const crypto = require(path.join(__dirname , '../lib/crypto'));
 const Controller = require('egg').Controller;
 
 class LoginController extends Controller {
-
-
+    
   //登入
   async login(){
     const { ctx } = this;
@@ -32,7 +31,7 @@ class LoginController extends Controller {
     if (user) {
       const isMatch = await crypto.verifyPassword(password, user.password);
       if (isMatch) {
-        ctx.session.user = { id: user.id, username: user.username, role:user.role};
+        ctx.session.user = { id: user.id, username: user.username, role: user.role };
         resultStatus = 200;
         resultBody = { msg: '登入成功', user: ctx.session.user };
       } else {                    
@@ -48,7 +47,7 @@ class LoginController extends Controller {
     ctx.body = resultBody;
   }
 
-  //註冊
+  //註冊帳號
   async register() {
     const { ctx } = this;
     let resultStatus = 200;
@@ -87,7 +86,7 @@ class LoginController extends Controller {
     ctx.body = { msg: '已登出' };
   }
 
-  //目前登入資訊
+  //目前session登入資訊
   async loginInfo() {
     const { ctx } = this;
     let userData = '';
