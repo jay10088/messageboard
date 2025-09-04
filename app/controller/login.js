@@ -102,7 +102,7 @@ class LoginController extends Controller {
       userData = { id: null, username: '', point: 0, role: '' };
       ctx.status = 400;
     }
-    
+
     ctx.body = userData;
   }
 }

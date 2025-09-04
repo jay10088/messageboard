@@ -111,6 +111,7 @@ class MessageController extends Controller {
     const role = ctx.session.user.role;
     const { id } = ctx.params;
     const username = ctx.session.user.username;
+    const role = ctx.session.user.role;
     const messageUser = await ctx.model.Message.findOne( { where: { id } } );
 
     //判斷權限
