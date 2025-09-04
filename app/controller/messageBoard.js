@@ -108,7 +108,6 @@ class MessageController extends Controller {
       id: { type: 'int', min: 1, required: true, convertType: 'int' }
     };
     ctx.validate(paramsRule, ctx.params);
-    const role = ctx.session.user.role;
     const { id } = ctx.params;
     const username = ctx.session.user.username;
     const role = ctx.session.user.role;
