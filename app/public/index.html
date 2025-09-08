@@ -99,7 +99,7 @@
       //開啟頁面時加載資料
       document.addEventListener("DOMContentLoaded", async () => {
         await load();
-        const r = await fetch('/api/loginInfo');
+        const r = await fetch('/api/myInfo');
         const userData = await r.json();
         //控制user看不到前端的管理介面
         if (userData.role === 'staff' || userData.role === 'admin') {
@@ -197,7 +197,7 @@
       document.getElementById('btnLogout').addEventListener('click', logout);
 
       async function addPoint() {
-        const r = await fetch('/api/loginInfo');
+        const r = await fetch('/api/myInfo');
         data = await r.json();
         if (r.ok) {
           window.location.href = "point.html";

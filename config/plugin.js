@@ -21,5 +21,14 @@ module.exports = {
   package: 'egg-validate',
 },
 
-  
+  redis: {
+    enable: true,
+    package: 'egg-redis',
+  },
+
+  sessionRedis: {
+  enable: true,
+  package: 'egg-session-redis',
+  },
+
 };
