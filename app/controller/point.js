@@ -4,66 +4,63 @@ const Controller = require('egg').Controller;
 
 class PointController extends Controller {
 
-  //指定使用者的點數資訊
-  async pointInfo() {
-    const { ctx } = this;
-
-    //驗證
-    const rules = {
-      username: { type: 'string', required: true, allowEmpty: false },
-    }
-    ctx.validate(rules , ctx.params);
-
-    const { username } = ctx.params;
-  
-    const rows = await ctx.model.User.findOne({
-      where: { username },
-      attributes: ['username', 'point'],
-      raw: true,
-    });
-
-    ctx.body = rows;
-  }
-
   //顯示全部點數交易歷史
   async showAllPointHistory() {
-    const { ctx } = this;
-  
-    const rows = await ctx.model.Point.findAll({
-      attributes: ['id', 'username', 'delta', 'createdAt'],
-      order: [['id', 'DESC']],
-      limit: 18,
-      raw: true,
-    });
+    const { ctx, app } = this;
 
-    ctx.body = rows;
+    let pointHistoryData = await ctx.service.cache.getPointHistoryCache();
+
+    if (!pointHistoryData) {
+      pointHistoryData = await ctx.model.Point.findAll({
+        attributes: ['id', 'username', 'delta', 'createdAt'],
+        order: [['id', 'DESC']],
+        limit: 18,
+        raw: true,
+      });
+
+      //mysql有找到寫入redis
+      if (pointHistoryData) {
+        await ctx.service.cache.setPointHistoryCache(pointHistoryData);
+      }
+    }
+
+    ctx.body = pointHistoryData;
   }
 
   //顯示特定使用者交易歷史
   async showUserPointHistory() {
-    const { ctx } = this;
-    const { username } = ctx.params;
-
+    const { ctx, app } = this;
+    
     //驗證
     const rules = {
       username: { type: 'string', required: true, allowEmpty: false },
     }
-    ctx.validate(rules , ctx.params);
-  
-    const rows = await ctx.model.Point.findAll({
-      where: { username },
-      attributes: ['id', 'username', 'delta', 'createdAt'],
-      order: [['id', 'DESC']],
-      limit: 18,
-      raw: true,
-    });
-
-    ctx.body = rows;
+    ctx.validate(rules, ctx.params);
+    
+    const { username } = ctx.params;    
+    let pointHistoryData = await ctx.service.cache.getUserPointHistoryCache(username);
+    
+    if (!pointHistoryData) {
+      pointHistoryData = await ctx.model.Point.findAll({
+        where: { username },
+        attributes: ['id', 'username', 'delta', 'createdAt'],
+        order: [['id', 'DESC']],
+        limit: 18,
+        raw: true,
+      });
+      
+      //mysql有找到寫入redis
+      if (pointHistoryData) {
+        await ctx.service.cache.setUserPointHistoryCache(username, pointHistoryData);
+      }
+    }
+    
+    ctx.body = pointHistoryData;
   }
 
   //儲值目前使用者點數(給一般使用者使用)
   async addPoint() {
-    const { ctx } = this;
+    const { ctx, app } = this;
     let returnStatus = 200;
     let returnBody = { msg: '儲值成功' };
 
@@ -87,6 +84,16 @@ class PointController extends Controller {
       returnStatus = 400;
       returnBody = { msg: '寫入資料庫失敗' };
     }
+
+    //寫入mysql成功後 清除redis紀錄並更新session
+    if (returnStatus === 200) {
+      await ctx.service.cache.clearUserCache(username);
+      await ctx.service.cache.clearPointCache(username);
+      
+      //更新sessiom
+      const updatedPoint = ctx.session.user.point + point;
+      ctx.session.user.point = updatedPoint;   
+    }
       
     ctx.status = returnStatus;
 
@@ -95,7 +102,7 @@ class PointController extends Controller {
 
   //管理特定使用者點數（只開放給管理員用）
   async managePoint() {
-    const { ctx } = this;
+    const { ctx, app } = this;
     let returnStatus = 200;
     let returnBody = { msg: '儲值成功' };
 
@@ -122,6 +129,17 @@ class PointController extends Controller {
       await t.rollback();
       returnStatus = 400;
       returnBody = { msg: '寫入資料庫失敗' };
+    }
+
+    //寫入mysql成功後 清除redis紀錄並更新session
+    if (returnStatus === 200) {
+      await ctx.service.cache.clearUserCache(username);
+      await ctx.service.cache.clearPointCache(username);
+
+      if (ctx.session.user.username === username) {
+        const updatedPoint = ctx.session.user.point + point;
+        ctx.session.user.point = updatedPoint;
+      }
     }
        
     ctx.status = returnStatus;

@@ -58,7 +58,7 @@
 
       //開啟頁面時加載資料
       document.addEventListener("DOMContentLoaded", async () => {
-        const r = await fetch('/api/loginInfo');
+        const r = await fetch('/api/myInfo');
         const userData = await r.json();
         if (userData.role === 'user' || userData.role === '') {
           alert('你沒有權限進入');
@@ -93,7 +93,7 @@
         const res = await fetch(`/api/showUserPointHistory/${ encodeURIComponent(username) }`);
         const userData = await res.json();
 
-        const r = await fetch(`/api/pointInfo/${ encodeURIComponent(username) }`);
+        const r = await fetch(`/api/findUserInfo/${ encodeURIComponent(username) }`);
         const pointData = await r.json();
 
         const pointContent = `使用者${ pointData.username }，目前持有：${ pointData.point }點`;
@@ -113,7 +113,7 @@
         const userInput = document.getElementById('userInput');
         const username = userInput.value.trim();
 
-        const r = await fetch(`/api/pointInfo/${ encodeURIComponent(username) }`);
+        const r = await fetch(`/api/findUserInfo/${ encodeURIComponent(username) }`);
         const pointData = await r.json();
 
         const tips = `${ pointData.username } 目前有 ${ pointData.point } 點，請輸入要增加或減少的點數（減少用-）`;

@@ -58,7 +58,7 @@
       })
 
       async function show() {
-        const r = await fetch("/api/loginInfo");
+        const r = await fetch("/api/myInfo");
         const userData = await r.json();
         document.getElementById("username").innerText = userData.username;
         document.getElementById("point").innerText = userData.point;

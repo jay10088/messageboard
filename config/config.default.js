@@ -38,6 +38,23 @@ module.exports = appInfo => {
     },
   };
 
+  config.redis = {
+    client: {
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT,
+      password: process.env.REDIS_PASSWORD,
+      db: 0,
+    },
+  };
+
+  config.session = {
+    key: 'EGG_SESS',
+    maxAge: 24 * 3600 * 1000, // 24小時
+    httpOnly: true,
+    encrypt: true,
+    renew: true,
+  };
+
   config.middleware = [];
 
   const userConfig = {};
