@@ -1,31 +1,43 @@
 'use strict';
-
 module.exports = {
-  async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('pointRecord', {
-      id: {
-        type: Sequelize.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-      },
-      username: {
-        type: Sequelize.STRING(20),
-        allowNull: false
-      },
-      delta: {
-        type: Sequelize.INTEGER,
-        allowNull: false
-      },
-      createdAt: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.NOW,
-      }
-    });
-  },
-
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('pointRecord');
-  }
+ async up(queryInterface, Sequelize) {
+   await queryInterface.createTable('pointRecord', {
+     id: {
+       type: Sequelize.INTEGER,
+       primaryKey: true,
+       autoIncrement: true,
+       allowNull: false
+     },
+     username: {
+       type: Sequelize.STRING(20),
+       allowNull: false
+     },
+     delta: {
+       type: Sequelize.INTEGER,
+       allowNull: false
+     },
+     reason: {
+       type: Sequelize.STRING(100),
+       allowNull: true
+     },
+     pointBefore: {
+       type: Sequelize.INTEGER,
+       allowNull: false,
+       defaultValue: 0
+     },
+     pointAfter: {
+       type: Sequelize.INTEGER,
+       allowNull: false,
+       defaultValue: 0
+     },
+     createdAt: {
+       type: Sequelize.DATE,
+       allowNull: false,
+       defaultValue: Sequelize.NOW,
+     }
+   });
+ },
+ async down(queryInterface, Sequelize) {
+   await queryInterface.dropTable('pointRecord');
+ }
 };

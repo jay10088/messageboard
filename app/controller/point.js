@@ -10,20 +10,6 @@ class PointController extends Controller {
 
     let pointHistoryData = await ctx.service.cache.getPointHistoryCache();
 
-    if (!pointHistoryData) {
-      pointHistoryData = await ctx.model.Point.findAll({
-        attributes: ['id', 'username', 'delta', 'createdAt'],
-        order: [['id', 'DESC']],
-        limit: 18,
-        raw: true,
-      });
-
-      //mysql有找到寫入redis
-      if (pointHistoryData) {
-        await ctx.service.cache.setPointHistoryCache(pointHistoryData);
-      }
-    }
-
     ctx.body = pointHistoryData;
   }
 
@@ -40,61 +26,30 @@ class PointController extends Controller {
     const { username } = ctx.params;    
     let pointHistoryData = await ctx.service.cache.getUserPointHistoryCache(username);
     
-    if (!pointHistoryData) {
-      pointHistoryData = await ctx.model.Point.findAll({
-        where: { username },
-        attributes: ['id', 'username', 'delta', 'createdAt'],
-        order: [['id', 'DESC']],
-        limit: 18,
-        raw: true,
-      });
-      
-      //mysql有找到寫入redis
-      if (pointHistoryData) {
-        await ctx.service.cache.setUserPointHistoryCache(username, pointHistoryData);
-      }
-    }
-    
     ctx.body = pointHistoryData;
   }
 
-  //儲值目前使用者點數(給一般使用者使用)
+  //新增點數
   async addPoint() {
     const { ctx, app } = this;
     let returnStatus = 200;
     let returnBody = { msg: '儲值成功' };
-
-    //驗證
-    const rule = {
-      point: { type: 'int', min: 1, required: true, convertType: 'int' }
-    };
-    ctx.validate(rule, ctx.request.body);
-
-    const { point } = ctx.request.body;
-    const username = ctx.session.user.username;
-
-    //原子操作資料庫
-    const t = await ctx.model.transaction();
+    
     try {
-      await ctx.model.User.increment('point', { by: point, where: { username: username }, transaction: t } );
-      await ctx.model.Point.create( { delta: point, username: username }, { transaction: t } );
-      await t.commit();
-    } catch (err) {
-      await t.rollback();
-      returnStatus = 400;
-      returnBody = { msg: '寫入資料庫失敗' };
-    }
-
-    //寫入mysql成功後 清除redis紀錄並更新session
-    if (returnStatus === 200) {
-      await ctx.service.cache.clearUserCache(username);
+      //驗證
+      const rule = {
+        point: { type: 'int', min: 1, required: true, convertType: 'int' }
+      };
+      ctx.validate(rule, ctx.request.body);
+      const { point } = ctx.request.body;
+      const username = ctx.session.user.username;
+      //增加點數
+      await ctx.service.point.topupPoint(username, point, 'USER_TOP_UP');
       await ctx.service.cache.clearPointCache(username);
-      
-      //更新sessiom
-      const updatedPoint = ctx.session.user.point + point;
-      ctx.session.user.point = updatedPoint;   
+    } catch (err) {
+      returnStatus = 400;
+      returnBody = { msg: err.message };
     }
-      
     ctx.status = returnStatus;
 
     ctx.body = returnBody;
@@ -106,42 +61,31 @@ class PointController extends Controller {
     let returnStatus = 200;
     let returnBody = { msg: '儲值成功' };
 
-    //驗證
-    const pointRule = {
-      point: { type: 'int', required: true, convertType: 'int' }
-    };
-    ctx.validate(pointRule, ctx.request.body);
-    const paramsRule = {
-      username: { type: 'string', required: true, allowEmpty: false },
-    }
-    ctx.validate(paramsRule , ctx.params);
-
-    const { point } = ctx.request.body;
-    const { username } = ctx.params;
-
-    //原子操作資料庫
-    const t = await ctx.model.transaction();
     try {
-      await ctx.model.User.increment('point', { by: point, where: { username: username }, transaction: t } );
-      await ctx.model.Point.create( { delta: point, username: username }, { transaction: t } );
-      await t.commit();
-    } catch (err) {
-      await t.rollback();
-      returnStatus = 400;
-      returnBody = { msg: '寫入資料庫失敗' };
-    }
-
-    //寫入mysql成功後 清除redis紀錄並更新session
-    if (returnStatus === 200) {
-      await ctx.service.cache.clearUserCache(username);
-      await ctx.service.cache.clearPointCache(username);
-
-      if (ctx.session.user.username === username) {
-        const updatedPoint = ctx.session.user.point + point;
-        ctx.session.user.point = updatedPoint;
+      //驗證
+      const pointRule = {
+        point: { type: 'int', required: true, convertType: 'int' }
+      };
+      ctx.validate(pointRule, ctx.request.body);
+      const paramsRule = {
+        username: { type: 'string', required: true, allowEmpty: false },
       }
+      ctx.validate(paramsRule , ctx.params);
+
+      const { point } = ctx.request.body;
+      const { username } = ctx.params;
+      const hasUser = ctx.model.User.findOne( { username } );
+
+      //管理點數
+      if (hasUser) {
+        await ctx.service.point.topupPoint(username, point, 'STAFF_TOP_UP');
+        await ctx.service.cache.clearPointCache(username);
+      }
+    } catch (err) {
+      returnStatus = 400;
+      returnBody = { msg: err.message };
     }
-       
+    
     ctx.status = returnStatus;
 
     ctx.body = returnBody;

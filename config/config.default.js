@@ -47,6 +47,13 @@ module.exports = appInfo => {
     },
   };
 
+  config.redlock = {
+    driftFactor: 0.01,
+    retryCount: 3,
+    retryDelay: 200,
+    retryJitter: 200,
+  };
+
   config.session = {
     key: 'EGG_SESS',
     maxAge: 24 * 3600 * 1000, // 24小時
