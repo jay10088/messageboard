@@ -14,8 +14,8 @@ module.exports = app => {
   router.post('/api/login', controller.login.login);
   router.post('/api/register', controller.login.register);
   router.post('/api/logout', loginAuth, controller.login.logout);
-  router.get('/api/loginInfo', controller.login.loginInfo);
-
+  router.get('/api/myInfo', controller.login.findmyInfo);
+  router.get('/api/findUserInfo/:username', loginAuth, controller.login.findUserInfo);
   // 留言板
   router.get('/api/message', controller.messageBoard.show);
   router.post('/api/message', loginAuth,  controller.messageBoard.create);
@@ -27,5 +27,4 @@ module.exports = app => {
   router.post('/api/managePoint/:username', loginAuth, staffAuth, controller.point.managePoint);
   router.get('/api/showAllPointHistory', loginAuth, staffAuth, controller.point.showAllPointHistory);
   router.get('/api/showUserPointHistory/:username', loginAuth, staffAuth, controller.point.showUserPointHistory);
-  router.get('/api/pointInfo/:username', loginAuth, controller.point.pointInfo);
 };
