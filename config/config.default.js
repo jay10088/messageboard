@@ -39,24 +39,21 @@ module.exports = appInfo => {
   };
 
   config.redis = {
-    client: {
-      host: process.env.REDIS_HOST,
-      port: process.env.REDIS_PORT,
+    client: {   
+      sentinels: [
+        { host: '127.0.0.1', port: 26379 },
+        { host: '127.0.0.1', port: 26380 },
+        { host: '127.0.0.1', port: 26381 },
+      ],
+      name: 'mymaster',
       password: process.env.REDIS_PASSWORD,
       db: 0,
     },
   };
 
-  config.redlock = {
-    driftFactor: 0.01,
-    retryCount: 3,
-    retryDelay: 200,
-    retryJitter: 200,
-  };
-
   config.session = {
     key: 'EGG_SESS',
-    maxAge: 24 * 3600 * 1000, // 24小時
+    maxAge: 24 * 3600 * 1000,
     httpOnly: true,
     encrypt: true,
     renew: true,

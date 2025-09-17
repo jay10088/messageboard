@@ -42,9 +42,10 @@ class PointController extends Controller {
       };
       ctx.validate(rule, ctx.request.body);
       const { point } = ctx.request.body;
+      const amount = Number(point);
       const username = ctx.session.user.username;
       //增加點數
-      await ctx.service.point.topupPoint(username, point, 'USER_TOP_UP');
+      await ctx.service.point.modifyPoint(username, amount, 'TOP_UP');
       await ctx.service.cache.clearPointCache(username);
     } catch (err) {
       returnStatus = 400;
@@ -75,10 +76,11 @@ class PointController extends Controller {
       const { point } = ctx.request.body;
       const { username } = ctx.params;
       const hasUser = ctx.model.User.findOne( { username } );
+      const amount = Number(point);
 
       //管理點數
       if (hasUser) {
-        await ctx.service.point.topupPoint(username, point, 'STAFF_TOP_UP');
+        await ctx.service.point.modifyPoint(username, amount, 'STAFF_MODIFY');
         await ctx.service.cache.clearPointCache(username);
       }
     } catch (err) {
@@ -89,6 +91,19 @@ class PointController extends Controller {
     ctx.status = returnStatus;
 
     ctx.body = returnBody;
+  }
+
+  async showUserPoint(){
+    const {ctx, app} = this;
+    const paramsRule = {
+      username: { type: 'string', required: true, allowEmpty: false },
+    }
+    ctx.validate(paramsRule , ctx.params);
+
+    const { username } = ctx.params;
+    const point = await ctx.service.point.getUserPoint(username);
+
+    ctx.body = { point: point};
   }
 }
 

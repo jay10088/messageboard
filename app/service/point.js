@@ -3,196 +3,150 @@
 const Service = require('egg').Service;
 
 class PointService extends Service {
-  
-  async acquireLock(username, timeout = 10000) {
-    const lockKey = `point_lock:${username}`;
-    
+
+  //修改點數（當扣點時amount為負數）
+  async modifyPoint(username, amount, reason = 'modify', operation = 'modifyPoint', extraData = {}) {
     try {
-      const lock = await this.app.redlock.acquire([lockKey], timeout);
-      return lock;
-    } catch (error) {
-      throw new Error('無法獲取鎖，請稍後再試');
-    }
-  }
+      const userKey = `user:${username}:point`;
+      const queueKey = 'dataQueue';
 
-  //讀取資料庫資料並鎖起
-  async lockAndGetUserPoint(username, transaction) {
-    const user = await this.app.model.User.findOne({
-      where: { username },
-      transaction,
-      lock: transaction.LOCK.UPDATE
-    });
+      //準備傳入lua腳本的參數
+      const queueData = {
+        username,
+        amount,
+        reason,
+        operation,
+        extraData,
+        timestamp: Date.now(),
+      };
+      const queueDataJSON = JSON.stringify(queueData);
 
-    return user.point;
-  }
+      //使用lua script修改點數並記錄
+      const result = await this.app.redis.evalsha(
+        this.app.redisScript.modifyPointSha,
+        2,
+        userKey,
+        queueKey,
+        queueDataJSON
+      );
 
-  //檢查資料一致性
-  async verifyDataConsistency(username) {
-    const redisP = await this.app.redis.get(`user:${username}:point`);
-    const dbUser = await this.app.model.User.findOne({
-      where: { username },
-      attributes: ['point']
-    });
-    
-    const dbPoint = dbUser.point;
-    const redisPoint = parseInt(redisP);
-    
-    //檢查Redis和資料庫是否一致，不一致的話redis可能有問題
-    if (redisPoint !== dbPoint) {
-      await this.app.redis.setex(`user:${username}:point`, 1800, dbPoint);
-      this.logger.error('錯誤，redis與資料庫不一致');
-    }
-  }
-
-  //更新資料庫
-  async updateUserPoint(username, oldPoint, newPoint, delta, reason, transaction) {
-
-    await this.app.model.User.update(
-      { point: newPoint },
-      {
-        where: { username },
-        transaction
-      }
-    );
-
-    //記錄點數變動/原因
-    await this.app.model.Point.create({
-      username: username,
-      delta: delta,
-      reason: reason,
-      pointBefore: oldPoint,
-      pointAfter: newPoint,
-    }, {
-      transaction
-    });
-  }
-
-  //更新redis快取
-  async updatePointCache(username, newPoint) {
-
-    //更新快取
-    await this.ctx.service.cache.clearUserCache(username);
-    await this.app.redis.setex(`user:${username}:point`, 1800, newPoint);
-
-    //更新 Session（如果是當前用戶）
-    if (this.ctx.session.user && this.ctx.session.user.username === username) {
-      this.ctx.session.user.point = newPoint;
-    }
-  }
-
-  // 儲值
-  async topupPoint(username, amount, reason = 'TOP_UP') {
-
-    const lock = await this.acquireLock(username);
-    let transaction;
-    
-    try {
-      transaction = await this.app.model.transaction();
-      
-      //鎖住用戶記錄並獲取目前點數
-      const currentPoint = await this.lockAndGetUserPoint(username, transaction);
-      const newPoint = currentPoint + amount;
-      
-      //更新用戶點數並寫紀錄
-      await this.updateUserPoint(username, currentPoint, newPoint, amount, reason, transaction);
-      
-      //交易正常的話commit
-      await transaction.commit();
-
-      //更新redis
-      await this.updatePointCache(username, newPoint);
-      
-      //檢查資料一致性
-      await this.verifyDataConsistency(username);
-      
-    } catch (error) {   
-      if (transaction) {
-        await transaction.rollback();
-      }
-      throw new Error(`儲值失敗: ${error.message}`);
-    } finally {
-      await lock.release();
-    }
-  }
-
-  //使用點數
-  async usePoint(username, amount, reason = 'USE_POINT') {
-
-    const lock = await this.acquireLock(username);
-    let transaction;
-      
-    try {
-      transaction = await this.app.model.transaction();
-
-      //鎖住用戶記錄並獲取目前點數
-      const currentPoint = await this.lockAndGetUserPoint(username, transaction);
-      
-      if (currentPoint < amount) {
+      if (result[0] === -1) {
         throw new Error('點數不足');
       }
-      
-      const newPoint = currentPoint - amount;
-      
-      //更新用戶點數並寫紀錄
-      await this.updateUserPoint(username, currentPoint, newPoint, -amount, reason, transaction);
-      
-      await transaction.commit();
 
-      //更新redis
-      await this.updatePointCache(username, newPoint);
-      
-      //檢查資料一致性
-      await this.verifyDataConsistency(username);
-      
-    } catch (error) {
-      if (transaction) {
-        await transaction.rollback();
+      //更新session資訊（如果是當前使用者）
+      if (this.ctx.session.user && this.ctx.session.user.username === username) {
+        this.ctx.session.user.point = result[0];
       }
-      throw new Error(`使用點數失敗: ${error.message}`);
-    } finally {
-      await lock.release();
+
+      return {
+        newPoint: result[0],
+        oldPoint: result[1]
+      };
+
+    } catch (error) {
+      throw new Error(`點數更改失敗: ${error.message}`);
     }
   }
 
-  //留言並消耗點數
   async createMessageWithPoint(username, content, reason = 'COMMENT') {
-
-    const lock = await this.acquireLock(username);
-    let transaction;
-    
     try {
-      transaction = await this.app.model.transaction();
-      
-      //鎖住用戶記錄並獲取目前點數
-      const currentPoint = await this.lockAndGetUserPoint(username, transaction);
-      
-      if (currentPoint <= 0) {
-        throw new Error('點數不足');
+      await this.modifyPoint(username, -1, reason, 'comment', {
+        content: content
+      });
+      await this.app.redis.lpush('messageBoard', content);
+
+    } catch (error) {
+      throw new Error(`留言失敗: ${error.message}`);
+    }
+  }
+
+  async processRedisDataQueue(maxSize = 200) {
+
+    const queueKey = 'dataQueue';
+    const records = fetchQueueRecord(queueKey, maxSize);
+
+    const message = [];
+    const pointRecord = [];
+    const userPointUpdate = new Map();
+
+    for (const record of records) {
+      if (record.operation === 'comment') {
+        message.push({
+          username: record.username,
+          content: record.extraData.content,
+        });
       }
-      
-      //寫入留言（原子操作）
-      await this.app.model.Message.create( { content, username }, { transaction } );     
-      const newPoint = currentPoint - 1;
-      
-      //更新用戶點數並寫紀錄
-      await this.updateUserPoint(username, currentPoint, newPoint, -1, reason, transaction);
-      
+
+      userPointUpdate.set(record.username, record.newPoint);
+
+      pointRecord.push({
+        username: record.username,
+        delta: record.amount,
+        pointBefore: record.oldPoint,
+        pointAfter: record.newPoint,
+        reason: record.reason,
+        created_at: new Date(record.timestamp),
+      });
+    }
+
+    const transaction = await this.app.model.transaction();
+    try {
+      await this.saveMessage(message, transaction);
+      await this.saveUserPoint(userPointUpdate, transaction);
+      await this.savePointRecord(pointRecord, transaction);
+
       await transaction.commit();
 
-      //更新redis
-      await this.updatePointCache(username, newPoint);
-
-      //檢查資料一致性
-      await this.verifyDataConsistency(username);
-      
+      return records.length;
     } catch (error) {
-      if (transaction) {
-        await transaction.rollback();
-      }
-      throw new Error(`留言失敗（未消耗點數）: ${error.message}`);
-    } finally {
-      await lock.release();
+      await transaction.rollback();
+      throw new Error(`資料庫操作失敗: ${error.message}`);
     }
+  }
+
+  async fetchQueueRecord(queueKey, maxSize) {
+    const rawRecord = await this.app.redis.evalsha(
+      this.app.redisScript.fetchQueueSha,
+      1,
+      queueKey,
+      maxSize
+    );
+    
+    return rawRecord.map(r => JSON.parse(r));
+  }
+
+  async saveMessage(message, transaction) {
+    if (message.length > 0) {
+      await this.app.model.Message.bulkCreate(message, { transaction });
+    }
+  }
+
+  async saveUserPoint(userPointUpdate, transaction) {
+    const userUpdateData = Array.from(userPointUpdate, ([username, point]) => ({
+      username,
+      point,
+    }));
+
+    if (userUpdateData.length > 0) {
+      await this.app.model.User.bulkCreate(userUpdateData, {
+        updateOnDuplicate: ['point'],
+        transaction,
+      });
+    }
+  }
+
+  async savePointRecord(pointRecord, transaction) {
+    if (pointRecord.length > 0) {
+      await this.app.model.Point.bulkCreate(pointRecord, { transaction });
+    }
+  }
+
+  async getUserPoint(username) {
+    const userKey = `user:${username}:point`;
+    let point = await this.app.redis.get(userKey);
+
+    return parseInt(point, 10);
   }
 }
 

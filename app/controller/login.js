@@ -21,31 +21,29 @@ class LoginController extends Controller {
     
     const { username, password } = ctx.request.body;
 
-    //先去redis找資料
-    let user = await ctx.service.cache.getUserCache(username);
-
-    //如果redis沒資料才從sql找
-    if (!user) {
-    user = await ctx.model.User.findOne({
+    let user = await ctx.model.User.findOne({
       where: { username },
       attributes: ['id', 'username', 'password', 'role', 'point']
     });
-    //有找到寫入redis
-    if (user) {
-      await ctx.service.cache.setUserCache(username, user);
-    }
-  }
 
     //判斷是否存在使用者/密碼
     if (user) {
       const isMatch = await crypto.verifyPassword(password, user.password);
       //密碼正確
       if (isMatch) {
+        //點數先去redis尋找
+        const userKey = `username:${username}:point`;
+        let userPoint = await ctx.redis.get(userKey);
+        if (userPoint === null) {
+          userPoint = user.point;
+          await ctx.redis.set(userKey,userPoint);
+        }
+
         ctx.session.user = {
           id: user.id,
           username: user.username,
           role: user.role,
-          point: user.point,
+          point: userPoint,
         };
         resultBody = { msg: '登入成功', user: ctx.session.user };
       } else {                    
@@ -67,6 +65,7 @@ class LoginController extends Controller {
     let resultStatus = 200;
     let resultBody = { msg: '註冊成功，跳轉至登入頁面' };
     let newUser, created;
+    const defaultPoint = 5;
 
     //驗證帳密
     const rules = {
@@ -84,12 +83,12 @@ class LoginController extends Controller {
       const hashedPassword = await crypto.encryptPassword(password);
       [newUser, created] = await ctx.model.User.findOrCreate({
       where: { username },
-      defaults: { password: hashedPassword, point: 5 },
+      defaults: { password: hashedPassword, point: defaultPoint },
       });
-      //有找到寫入redis
-      if (newUser) {
-        await ctx.service.cache.setUserCache(username, newUser);
-      }
+
+      //redis預設點數
+      const userKey = `username:${username}:point`;
+      await ctx.redis.set(userKey, defaultPoint);
     }
 
     //重複使用者
