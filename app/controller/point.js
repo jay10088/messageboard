@@ -44,7 +44,7 @@ class PointController extends Controller {
       const { point } = ctx.request.body;
       const username = ctx.session.user.username;
       //增加點數
-      await ctx.service.point.topupPoint(username, point, 'USER_TOP_UP');
+      await ctx.service.point.modifyPoint(username, point, 'TOP_UP');
       await ctx.service.cache.clearPointCache(username);
     } catch (err) {
       returnStatus = 400;
@@ -78,7 +78,7 @@ class PointController extends Controller {
 
       //管理點數
       if (hasUser) {
-        await ctx.service.point.topupPoint(username, point, 'STAFF_TOP_UP');
+        await ctx.service.point.modifyPoint(username, point, 'STAFF_MODIFY');
         await ctx.service.cache.clearPointCache(username);
       }
     } catch (err) {
