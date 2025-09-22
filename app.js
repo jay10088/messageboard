@@ -24,4 +24,3 @@ function processPointQueue(app) {
   
   processQueue();
 }
-
