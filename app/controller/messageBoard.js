@@ -43,29 +43,13 @@ class MessageController extends Controller {
       returnStatus = 400;
       returnBody = { msg: '點數不足，請先儲值' };
     } else {
-      //如果沒錯誤，寫入資料庫，並花費點數（全部正確執行才寫入，否則rollback)
-      const t = await ctx.model.transaction();
       try {
-        await ctx.model.Message.create( { content, username }, { transaction: t } );
-        await ctx.model.User.decrement('point', { by: 1, where: { username }, transaction: t } );
-        await ctx.model.Point.create( { delta: -1, username: username }, { transaction: t } );
-        await t.commit();
+        await ctx.service.point.createMessageWithPoint(username, content);
+        await ctx.service.cache.clearMessageCache();
       } catch (err) {
-        await t.rollback();
         returnStatus = 400;
-        returnBody = { msg: '寫入資料庫失敗' };
+        returnBody = { msg: err.message };
       }
-    }
-
-    //正常寫入的話，清除留言及點數cache，接著更新session
-    if (returnStatus === 200) {
-      await ctx.service.cache.clearUserCache(username);
-      await ctx.service.cache.clearMessageCache();
-      await ctx.service.cache.clearPointCache(username);
-
-      //更新session
-      const updatedpoint = ctx.session.user.point - 1;
-      ctx.session.user.point = updatedpoint;
     }
 
     ctx.status = returnStatus;
